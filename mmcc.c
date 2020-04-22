@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <stdarg.h>
 
 typedef enum {
     TK_RESERVED,
@@ -20,6 +21,21 @@ struct Token {
 
 Token *token;
 
+char *user_input;
+
+void error_at(char *loc, char *fmt, ...) {
+    va_list arg;
+    va_start(arg, fmt);
+
+    int pos = loc - user_input;
+    fprintf(stderr, "%s\n", user_input);
+    fprintf(stderr, "%*s", pos, " ");
+    fprintf(stderr, "^ ");
+    vfprintf(stderr, fmt, arg);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
 bool consume(char op) {
     if (token->kind != TK_RESERVED || token->str[0] != op)
         return false;
@@ -29,13 +45,13 @@ bool consume(char op) {
 
 void expect(char op) {
     if (token->kind != TK_RESERVED || token->str[0] != op)
-        fprintf(stderr, "expected '%c' but got '%c'\n", op, token->str[0]);
+        error_at(token->str, "expected '%c' but got '%c'\n", op, token->str[0]);
     token = token->next;
 }
 
 int expect_number() {
     if (token->kind != TK_NUM)
-        fprintf(stderr, "expected number but got '%c'\n", token->str[0]);
+        error_at(token->str, "expected number but got '%c'\n", token->str[0]);
     int val = token->val;
     token = token->next;
     return val;
@@ -75,7 +91,7 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        fprintf(stderr, "unexpected character: '%c'\n", *p);
+        error_at(p, "unable tokenize\n");
     }
 
     new_token(TK_EOF, cur, p);
@@ -88,6 +104,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    user_input = argv[1];
     token = tokenize(argv[1]);
 
     printf(".intel_syntax noprefix\n");
