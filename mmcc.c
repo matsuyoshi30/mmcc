@@ -4,6 +4,23 @@
 #include <ctype.h>
 #include <stdarg.h>
 
+char *user_input;
+
+void error_at(char *loc, char *fmt, ...) {
+    va_list arg;
+    va_start(arg, fmt);
+
+    int pos = loc - user_input;
+    fprintf(stderr, "%s\n", user_input);
+    fprintf(stderr, "%*s", pos, " ");
+    fprintf(stderr, "^ ");
+    vfprintf(stderr, fmt, arg);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
+// Tokenizer
+
 typedef enum {
     TK_RESERVED,
     TK_NUM,
@@ -21,21 +38,7 @@ struct Token {
 
 Token *token;
 
-char *user_input;
-
-void error_at(char *loc, char *fmt, ...) {
-    va_list arg;
-    va_start(arg, fmt);
-
-    int pos = loc - user_input;
-    fprintf(stderr, "%s\n", user_input);
-    fprintf(stderr, "%*s", pos, " ");
-    fprintf(stderr, "^ ");
-    vfprintf(stderr, fmt, arg);
-    fprintf(stderr, "\n");
-    exit(1);
-}
-
+// consume the current token if it matches 'op'
 bool consume(char op) {
     if (token->kind != TK_RESERVED || token->str[0] != op)
         return false;
@@ -43,12 +46,14 @@ bool consume(char op) {
     return true;
 }
 
+// check whether the current token matches 'op'
 void expect(char op) {
     if (token->kind != TK_RESERVED || token->str[0] != op)
         error_at(token->str, "expected '%c' but got '%c'\n", op, token->str[0]);
     token = token->next;
 }
 
+// check whether the current token is number
 int expect_number() {
     if (token->kind != TK_NUM)
         error_at(token->str, "expected number but got '%c'\n", token->str[0]);
@@ -57,6 +62,7 @@ int expect_number() {
     return val;
 }
 
+// check whether the current token is EOF
 bool at_eof() {
     return token->kind == TK_EOF;
 }
@@ -80,7 +86,7 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/') {
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
             cur = new_token(TK_RESERVED, cur, p++);
             continue;
         }
@@ -97,6 +103,8 @@ Token *tokenize(char *p) {
     new_token(TK_EOF, cur, p);
     return head.next;
 }
+
+// Parser
 
 typedef enum {
     ND_ADD,
@@ -130,19 +138,11 @@ Node *new_node_num(int val) {
     return node;
 }
 
-Node *mul() {
-    Node *node = new_node_num(expect_number());
+Node *expr();
+Node *mul();
+Node *primary();
 
-    for (;;) {
-        if (consume('*'))
-            node = new_node(ND_MUL, node, new_node_num(expect_number()));
-        else if (consume('/'))
-            node = new_node(ND_DIV, node, new_node_num(expect_number()));
-        else
-            return node;
-    }
-}
-
+// expr = mul ( '+' mul | '-' mul )*
 Node *expr() {
     Node *node = mul();
 
@@ -155,6 +155,33 @@ Node *expr() {
             return node;
     }
 }
+
+// mul = primary ( '*' primary | '/' primary )*
+Node *mul() {
+    Node *node = primary();
+
+    for (;;) {
+        if (consume('*'))
+            node = new_node(ND_MUL, node, primary());
+        else if (consume('/'))
+            node = new_node(ND_DIV, node, primary());
+        else
+            return node;
+    }
+}
+
+// primary = '(' expr ')' | num
+Node *primary() {
+    if (consume('(')) {
+        Node *node = expr();
+        expect(')');
+        return node;
+    }
+
+    return new_node_num(expect_number());
+}
+
+// Code generator
 
 void gen(Node *node) {
     if (node->kind == ND_NUM) {
