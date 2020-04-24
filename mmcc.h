@@ -7,12 +7,14 @@
 
 extern char *user_input;
 
+void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 
 // Tokenizer
 
 typedef enum {
     TK_RESERVED,
+    TK_IDENT,
     TK_NUM,
     TK_EOF,
 } Tokenkind;
@@ -44,6 +46,8 @@ typedef enum {
     ND_LT, // less than <
     ND_OM, // or more >=
     ND_OL, // or less <=
+    ND_AS, // assgin
+    ND_LV, // local value
     ND_NUM,
 } Nodekind;
 
@@ -53,10 +57,13 @@ struct Node {
     Nodekind kind;
     Node *lhs;
     Node *rhs;
-    int val;
+    int val;    // only ND_NUM
+    int offset; // only ND_LV
 };
 
-Node *expr();
+extern Node *code[100];
+
+void program();
 
 // Code generator
 

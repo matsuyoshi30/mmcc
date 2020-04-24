@@ -2,6 +2,15 @@
 
 char *user_input;
 
+void error(char *fmt, ...) {
+    va_list arg;
+    va_start(arg, fmt);
+
+    vfprintf(stderr, fmt, arg);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
 void error_at(char *loc, char *fmt, ...) {
     va_list arg;
     va_start(arg, fmt);
@@ -23,15 +32,25 @@ int main(int argc, char **argv) {
 
     user_input = argv[1];
     token = tokenize(user_input);
-    Node *node = expr();
+    program();
 
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
     printf("main:\n");
 
-    gen(node);
+    // prologue
+    printf("  push rbp\n");
+    printf("  mov rbp, rsp\n");
+    printf("  sub rsp, %d\n", 26*8);
 
-    printf("  pop rax\n");
+    for (int i=0; code[i]; i++) {
+        gen(code[i]);
+        printf("  pop rax\n");
+    }
+
+    // epilogue
+    printf("  mov rsp, rbp\n");
+    printf("  pop rbp\n");
     printf("  ret\n");
     return 0;
 }
