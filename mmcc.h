@@ -31,6 +31,12 @@ struct Token {
 
 extern Token *token;
 
+bool consume(char *op);
+Token *consume_ident();
+void expect(char *op);
+int expect_number();
+bool at_eof();
+
 Token *tokenize(char *p);
 
 // Parser
