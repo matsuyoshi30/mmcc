@@ -32,7 +32,7 @@ void gen(Node *node) {
         printf("  pop rdi\n");
         printf("  pop rax\n");
         printf("  mov [rax], rdi\n"); // store value from rdi into the address in rax
-        printf("  push rdi\n"); // rax?
+        printf("  push rdi\n");
         return;
     }
 

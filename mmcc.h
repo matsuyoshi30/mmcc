@@ -67,6 +67,16 @@ struct Node {
     int offset; // only ND_LV
 };
 
+typedef struct LVar LVar;
+
+struct LVar {
+    LVar *next;
+    char *name;
+    int len;
+    int offset;
+};
+
+extern LVar *locals;
 extern Node *code[100];
 
 void program();
