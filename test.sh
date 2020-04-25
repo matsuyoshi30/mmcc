@@ -38,5 +38,9 @@ assert 2 'b=3-1;'
 assert 1 'c=5>3;'
 assert 10 'foo=10;'
 assert 123 'bar=10; bar=123;'
+assert 22 'a=13; b=a+9;'
+assert 5 'return 5;'
+assert 30 'foo=30; return foo;'
+assert 45 'a=15; b=3; return a*b;'
 
 echo OK

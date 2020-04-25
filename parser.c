@@ -41,6 +41,9 @@ Node *primary();
 
 // program = stmt*
 void program() {
+    locals = calloc(1, sizeof(LVar));
+    locals->offset = 0;
+
     int i = 0;
     while (!at_eof()) {
         code[i++] = stmt();
@@ -48,9 +51,18 @@ void program() {
     code[i] = NULL;
 }
 
-// stmt = expr ";"
+// stmt = "return" expr ";" | expr ";"
 Node *stmt() {
-    Node *node = expr();
+    Node *node;
+
+    if (consume_return()) {
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_RET;
+        node->lhs = expr();
+    } else {
+        node = expr();
+    }
+
     expect(";");
 
     return node;

@@ -11,6 +11,14 @@ bool consume(char *op) {
     return true;
 }
 
+// consume the current token if it matches "return"
+bool consume_return() {
+    if (token->kind != TK_RETURN)
+        return false;
+    token = token->next;
+    return true;
+}
+
 // consume the current token if it is identifier
 Token *consume_ident() {
     if (token->kind != TK_IDENT)
@@ -74,6 +82,12 @@ Token *tokenize(char *p) {
     while (*p) {
         if (isspace(*p)) {
             p++;
+            continue;
+        }
+
+        if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
+            cur = new_token(TK_RETURN, cur, p, 6);
+            p+=6;
             continue;
         }
 
