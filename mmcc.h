@@ -16,6 +16,8 @@ typedef enum {
     TK_RESERVED,
     TK_IDENT,
     TK_NUM,
+    TK_IF,
+    TK_ELSE,
     TK_RETURN,
     TK_EOF,
 } Tokenkind;
@@ -34,6 +36,8 @@ extern Token *token;
 
 bool consume(char *op);
 bool consume_return();
+bool consume_if();
+bool consume_else();
 Token *consume_ident();
 void expect(char *op);
 int expect_number();
@@ -56,6 +60,7 @@ typedef enum {
     ND_OL, // or less <=
     ND_AS, // assgin
     ND_LV, // local value
+    ND_IF,
     ND_RET,
     ND_NUM,
 } Nodekind;
@@ -66,8 +71,11 @@ struct Node {
     Nodekind kind;
     Node *lhs;
     Node *rhs;
-    int val;    // only ND_NUM
-    int offset; // only ND_LV
+    int val;    // use if kind == ND_NUM
+    int offset; // use if kind == ND_LV
+    Node *cond; // use if kind == ND_IF
+    Node *then;
+    Node *els;
 };
 
 typedef struct LVar LVar;

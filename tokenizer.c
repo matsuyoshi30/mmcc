@@ -19,6 +19,22 @@ bool consume_return() {
     return true;
 }
 
+// consume the current token if it matches "if"
+bool consume_if() {
+    if (token->kind != TK_IF)
+        return false;
+    token = token->next;
+    return true;
+}
+
+// consume the current token if it matches "else"
+bool consume_else() {
+    if (token->kind != TK_ELSE)
+        return false;
+    token = token->next;
+    return true;
+}
+
 // consume the current token if it is identifier
 Token *consume_ident() {
     if (token->kind != TK_IDENT)
@@ -88,6 +104,18 @@ Token *tokenize(char *p) {
         if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
             cur = new_token(TK_RETURN, cur, p, 6);
             p+=6;
+            continue;
+        }
+
+        if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
+            cur = new_token(TK_IF, cur, p, 2);
+            p+=2;
+            continue;
+        }
+
+        if (strncmp(p, "else", 4) == 0 && !is_alnum(p[4])) {
+            cur = new_token(TK_ELSE, cur, p, 4);
+            p+=4;
             continue;
         }
 

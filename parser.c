@@ -30,6 +30,7 @@ Node *code[100];
 
 void program();
 Node *stmt();
+Node *cond();
 Node *expr();
 Node *assign();
 Node *equality();
@@ -51,7 +52,9 @@ void program() {
     code[i] = NULL;
 }
 
-// stmt = "return" expr ";" | expr ";"
+// stmt = "return" expr ";"
+//        | "if" "(" cond ")" stmt ( "else" stmt )?
+//        | expr ";"
 Node *stmt() {
     Node *node;
 
@@ -59,6 +62,16 @@ Node *stmt() {
         node = calloc(1, sizeof(Node));
         node->kind = ND_RET;
         node->lhs = expr();
+    } else if (consume_if()) {
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_IF;
+        expect("(");
+        node->cond = cond();
+        expect(")");
+        node->then = stmt();
+        if (consume_else())
+            node->els = stmt();
+        return node;
     } else {
         node = expr();
     }
@@ -66,6 +79,11 @@ Node *stmt() {
     expect(";");
 
     return node;
+}
+
+// cond = expr
+Node *cond() {
+    return expr();
 }
 
 // expr = assign
