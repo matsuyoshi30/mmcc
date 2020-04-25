@@ -56,6 +56,23 @@ void gen(Node *node) {
         return;
     }
 
+    if (node->kind == ND_FOR) {
+        if (node->preop)
+            gen(node->preop);
+        printf(".Lbegin%03d:\n", beginLabels);
+        if (node->cond)
+            gen(node->cond);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  je .Lend%03d\n", endLabels);
+        gen(node->then);
+        if (node->postop)
+            gen(node->postop);
+        printf("  jmp .Lbegin%03d\n", beginLabels++);
+        printf(".Lend%03d:\n", endLabels++);
+        return;
+    }
+
     if (node->kind == ND_NUM) {
         printf("  push %d\n", node->val);
         return;
