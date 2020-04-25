@@ -114,7 +114,7 @@ void gen(Node *node) {
         break;
     case ND_LT:
         printf("  cmp rax, rdi\n");
-        printf("  setle al\n");
+        printf("  setl al\n");
         printf("  movzb rax, al\n");
         break;
     }
