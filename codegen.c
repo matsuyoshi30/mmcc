@@ -2,6 +2,8 @@
 
 // Code generator
 
+static int labels = 1;
+
 void gen_lval(Node *node) {
     if (node->kind != ND_LV)
         error("The left value of the assignment is not a variable.");
@@ -12,10 +14,6 @@ void gen_lval(Node *node) {
 }
 
 void gen(Node *node) {
-    static int beginLabels = 1;
-    static int elseLabels = 1;
-    static int endLabels = 1;
-
     if (node->kind == ND_RET) {
         gen(node->lhs);
         printf("  pop rax\n");
@@ -26,50 +24,53 @@ void gen(Node *node) {
     }
 
     if (node->kind == ND_IF) {
+        int seq = labels++;
         gen(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
         if (node->els) {
-            printf("  je .Lelse%03d\n", elseLabels);
+            printf("  je .Lelse%03d\n", seq);
             gen(node->then);
-            printf("  jmp .Lend%03d\n", endLabels);
-            printf(".Lelse%03d:\n", elseLabels++);
+            printf("  jmp .Lend%03d\n", seq);
+            printf(".Lelse%03d:\n", seq);
             gen(node->els);
-            printf(".Lend%03d:\n", endLabels++);
+            printf(".Lend%03d:\n", seq);
         } else {
-            printf("  je .Lend%03d\n", endLabels);
+            printf("  je .Lend%03d\n", seq);
             gen(node->then);
-            printf(".Lend%03d:\n", endLabels++);
+            printf(".Lend%03d:\n", seq);
         }
         return;
     }
 
     if (node->kind == ND_WHILE) {
-        printf(".Lbegin%03d:\n", beginLabels);
+        int seq = labels++;
+        printf(".Lbegin%03d:\n", seq);
         gen(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  je .Lend%03d\n", endLabels);
+        printf("  je .Lend%03d\n", seq);
         gen(node->then);
-        printf("  jmp .Lbegin%03d\n", beginLabels++);
-        printf(".Lend%03d:\n", endLabels++);
+        printf("  jmp .Lbegin%03d\n", seq);
+        printf(".Lend%03d:\n", seq);
         return;
     }
 
     if (node->kind == ND_FOR) {
+        int seq = labels++;
         if (node->preop)
             gen(node->preop);
-        printf(".Lbegin%03d:\n", beginLabels);
+        printf(".Lbegin%03d:\n", seq);
         if (node->cond)
             gen(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  je .Lend%03d\n", endLabels);
+        printf("  je .Lend%03d\n", seq);
         gen(node->then);
         if (node->postop)
             gen(node->postop);
-        printf("  jmp .Lbegin%03d\n", beginLabels++);
-        printf(".Lend%03d:\n", endLabels++);
+        printf("  jmp .Lbegin%03d\n", seq);
+        printf(".Lend%03d:\n", seq);
         return;
     }
 
