@@ -12,6 +12,7 @@ void gen_lval(Node *node) {
 }
 
 void gen(Node *node) {
+    static int beginLabels = 1;
     static int elseLabels = 1;
     static int endLabels = 1;
 
@@ -40,6 +41,18 @@ void gen(Node *node) {
             gen(node->then);
             printf(".Lend%03d:\n", endLabels++);
         }
+        return;
+    }
+
+    if (node->kind == ND_WHILE) {
+        printf(".Lbegin%03d:\n", beginLabels);
+        gen(node->cond);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  je .Lend%03d\n", endLabels);
+        gen(node->then);
+        printf("  jmp .Lbegin%03d\n", beginLabels++);
+        printf(".Lend%03d:\n", endLabels++);
         return;
     }
 

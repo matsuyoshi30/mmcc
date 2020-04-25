@@ -18,6 +18,7 @@ typedef enum {
     TK_NUM,
     TK_IF,
     TK_ELSE,
+    TK_WHILE,
     TK_RETURN,
     TK_EOF,
 } Tokenkind;
@@ -38,6 +39,7 @@ bool consume(char *op);
 bool consume_return();
 bool consume_if();
 bool consume_else();
+bool consume_while();
 Token *consume_ident();
 void expect(char *op);
 int expect_number();
@@ -61,6 +63,7 @@ typedef enum {
     ND_AS, // assgin
     ND_LV, // local value
     ND_IF,
+    ND_WHILE,
     ND_RET,
     ND_NUM,
 } Nodekind;

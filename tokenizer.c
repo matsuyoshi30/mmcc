@@ -35,6 +35,14 @@ bool consume_else() {
     return true;
 }
 
+// consume the current token if it matches "while"
+bool consume_while() {
+    if (token->kind != TK_WHILE)
+        return false;
+    token = token->next;
+    return true;
+}
+
 // consume the current token if it is identifier
 Token *consume_ident() {
     if (token->kind != TK_IDENT)
@@ -116,6 +124,12 @@ Token *tokenize(char *p) {
         if (strncmp(p, "else", 4) == 0 && !is_alnum(p[4])) {
             cur = new_token(TK_ELSE, cur, p, 4);
             p+=4;
+            continue;
+        }
+
+        if (strncmp(p, "while", 5) == 0 && !is_alnum(p[5])) {
+            cur = new_token(TK_WHILE, cur, p, 5);
+            p+=5;
             continue;
         }
 
