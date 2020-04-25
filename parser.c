@@ -53,12 +53,24 @@ void program() {
 }
 
 // stmt = "return" expr ";"
+//        | "{" stmt* "}"
 //        | "if" "(" cond ")" stmt ( "else" stmt )?
 //        | "while" "(" cond ")" stmt
 //        | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 //        | expr ";"
 Node *stmt() {
     Node *node;
+
+    if (consume("{")) {
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_BLOCK;
+        int i = 0;
+        while (!consume("}")) {
+            node->blocks[i++] = stmt();
+        }
+        node->blocks[i] = NULL;
+        return node;
+    }
 
     if (consume_return()) {
         node = calloc(1, sizeof(Node));

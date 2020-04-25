@@ -67,6 +67,7 @@ typedef enum {
     ND_IF,
     ND_WHILE,
     ND_FOR,
+    ND_BLOCK,
     ND_RET,
     ND_NUM,
 } Nodekind;
@@ -84,6 +85,8 @@ struct Node {
     Node *els;
     Node *preop;  // use if kind == ND_FOR
     Node *postop; // use if kind == ND_FOR
+
+    Node *blocks[20]; // use if kind == ND_BLOCK
 };
 
 typedef struct LVar LVar;
