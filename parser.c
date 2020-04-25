@@ -21,7 +21,7 @@ LVar *locals;
 
 LVar *find_lvar(Token *tok) {
     for (LVar *lvar = locals; lvar; lvar=lvar->next)
-        if (lvar->len && tok->len && !memcmp(tok->str, lvar->name, lvar->len))
+        if (lvar->len == tok->len && !strncmp(tok->str, lvar->name, lvar->len))
             return lvar;
     return NULL;
 }
