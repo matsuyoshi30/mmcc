@@ -37,17 +37,13 @@ struct Token {
 extern Token *token;
 
 bool consume(char *op);
-bool consume_return();
-bool consume_if();
-bool consume_else();
-bool consume_while();
-bool consume_for();
+bool consume_tk(Tokenkind tk);
 Token *consume_ident();
 void expect(char *op);
 int expect_number();
 bool at_eof();
 
-Token *tokenize(char *p);
+void tokenize();
 
 // Parser
 
@@ -56,18 +52,18 @@ typedef enum {
     ND_SUB,
     ND_MUL,
     ND_DIV,
-    ND_EQ,
-    ND_NE,
-    ND_MT, // more than >
-    ND_LT, // less than <
-    ND_OM, // or more >=
-    ND_OL, // or less <=
-    ND_AS, // assgin
-    ND_LV, // local value
+    ND_EQ, // ==
+    ND_NE, // !=
+    ND_MT, // >
+    ND_LT, // <
+    ND_OM, // >=
+    ND_OL, // <=
+    ND_AS, // =
+    ND_LV, // local variable
     ND_IF,
     ND_WHILE,
     ND_FOR,
-    ND_BLOCK,
+    ND_BLOCK, // {...}
     ND_RET,
     ND_NUM,
 } Nodekind;
@@ -76,17 +72,21 @@ typedef struct Node Node;
 
 struct Node {
     Nodekind kind;
+    Node *next;
+
     Node *lhs;
     Node *rhs;
-    int val;    // use if kind == ND_NUM
-    int offset; // use if kind == ND_LV
-    Node *cond; // use if kind == ND_IF, ND_WHILE or ND_FOR
+
+    int val;    // for ND_NUM
+    int offset; // for ND_LV
+
+    Node *cond;
     Node *then;
     Node *els;
-    Node *preop;  // use if kind == ND_FOR
-    Node *postop; // use if kind == ND_FOR
+    Node *preop;
+    Node *postop;
 
-    Node *blocks[20]; // use if kind == ND_BLOCK
+    Node *blocks; // for ND_BLOCK
 };
 
 typedef struct LVar LVar;
@@ -99,10 +99,10 @@ struct LVar {
 };
 
 extern LVar *locals;
-extern Node *code[100];
+extern Node *code;
 
 void program();
 
 // Code generator
 
-void gen(Node *node);
+void codegen();

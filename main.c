@@ -25,32 +25,19 @@ void error_at(char *loc, char *fmt, ...) {
 }
 
 int main(int argc, char **argv) {
-    if (argc != 2) {
-        fprintf(stderr, "wrong the number of arguments\n");
-        return 1;
-    }
+    if (argc != 2)
+        error("wrong the number of arguments\n");
 
     user_input = argv[1];
-    token = tokenize(user_input);
+
+    // tokenize input
+    tokenize();
+
+    // parse tokens into AST
     program();
 
-    printf(".intel_syntax noprefix\n");
-    printf(".global main\n");
-    printf("main:\n");
+    // emit code from AST
+    codegen();
 
-    // prologue
-    printf("  push rbp\n");
-    printf("  mov rbp, rsp\n");
-    printf("  sub rsp, %d\n", 26*8);
-
-    for (int i=0; code[i]; i++) {
-        gen(code[i]);
-        printf("  pop rax\n");
-    }
-
-    // epilogue
-    printf("  mov rsp, rbp\n");
-    printf("  pop rbp\n");
-    printf("  ret\n");
     return 0;
 }

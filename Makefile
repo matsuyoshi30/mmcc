@@ -3,14 +3,14 @@ SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
 
 mmcc: $(OBJS)
-				$(CC) -o mmcc $(OBJS) $(LDFLAGS)
+	$(CC) -o mmcc $(OBJS) $(LDFLAGS)
 
 $(OBJS): mmcc.h
 
 test: mmcc
-				./test.sh
+	./test.sh
 
 clean:
-				rm -f mmcc *.o *~ tmp*
+	rm -f mmcc *.o *~ tmp*
 
 .PHONY: test clean

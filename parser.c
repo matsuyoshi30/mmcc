@@ -26,7 +26,7 @@ LVar *find_lvar(Token *tok) {
     return NULL;
 }
 
-Node *code[100];
+Node *code;
 
 void program();
 Node *stmt();
@@ -42,14 +42,19 @@ Node *primary();
 
 // program = stmt*
 void program() {
+    Node head;
+    head.next = NULL;
+    Node *cur = &head;
+
     locals = calloc(1, sizeof(LVar));
     locals->offset = 0;
 
-    int i = 0;
     while (!at_eof()) {
-        code[i++] = stmt();
+        cur->next = stmt();
+        cur = cur->next;
     }
-    code[i] = NULL;
+
+    code = head.next;
 }
 
 // stmt = "return" expr ";"
@@ -62,31 +67,35 @@ Node *stmt() {
     Node *node;
 
     if (consume("{")) {
+        Node head;
+        head.next = NULL;
+        Node *cur = &head;
+
         node = calloc(1, sizeof(Node));
         node->kind = ND_BLOCK;
-        int i = 0;
         while (!consume("}")) {
-            node->blocks[i++] = stmt();
+            cur->next = stmt();
+            cur = cur->next;
         }
-        node->blocks[i] = NULL;
+        node->blocks = head.next;
         return node;
     }
 
-    if (consume_return()) {
+    if (consume_tk(TK_RETURN)) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_RET;
         node->lhs = expr();
-    } else if (consume_if()) {
+    } else if (consume_tk(TK_IF)) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_IF;
         expect("(");
         node->cond = cond();
         expect(")");
         node->then = stmt();
-        if (consume_else())
+        if (consume_tk(TK_ELSE))
             node->els = stmt();
         return node;
-    } else if (consume_while()) {
+    } else if (consume_tk(TK_WHILE)) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_WHILE;
         expect("(");
@@ -94,7 +103,7 @@ Node *stmt() {
         expect(")");
         node->then = stmt();
         return node;
-    } else if (consume_for()) {
+    } else if (consume_tk(TK_FOR)) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_FOR;
         expect("(");

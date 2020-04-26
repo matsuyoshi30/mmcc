@@ -14,24 +14,21 @@ void gen_lval(Node *node) {
 }
 
 void gen(Node *node) {
-    if (node->kind == ND_RET) {
+    switch (node->kind) {
+    case ND_RET:
         gen(node->lhs);
         printf("  pop rax\n");
         printf("  mov rsp, rbp\n");
         printf("  pop rbp\n");
         printf("  ret\n");
         return;
-    }
-
-    if (node->kind == ND_BLOCK) {
-        for (int i=0; node->blocks[i]; i++) {
-            gen(node->blocks[i]);
+    case ND_BLOCK:
+        for (Node *block=node->blocks; block; block=block->next) {
+            gen(block);
             printf("  pop rax\n");
         }
         return;
-    }
-
-    if (node->kind == ND_IF) {
+    case ND_IF: {
         int seq = labels++;
         gen(node->cond);
         printf("  pop rax\n");
@@ -50,8 +47,7 @@ void gen(Node *node) {
         }
         return;
     }
-
-    if (node->kind == ND_WHILE) {
+    case ND_WHILE: {
         int seq = labels++;
         printf(".Lbegin%03d:\n", seq);
         gen(node->cond);
@@ -63,8 +59,7 @@ void gen(Node *node) {
         printf(".Lend%03d:\n", seq);
         return;
     }
-
-    if (node->kind == ND_FOR) {
+    case ND_FOR: {
         int seq = labels++;
         if (node->preop)
             gen(node->preop);
@@ -81,21 +76,16 @@ void gen(Node *node) {
         printf(".Lend%03d:\n", seq);
         return;
     }
-
-    if (node->kind == ND_NUM) {
+    case ND_NUM:
         printf("  push %d\n", node->val);
         return;
-    }
-
-    if (node->kind == ND_LV) {
+    case ND_LV:
         gen_lval(node);
         printf("  pop rax\n");
         printf("  mov rax, [rax]\n"); // load value from the address in rax into rax
         printf("  push rax\n");
         return;
-    }
-
-    if (node->kind == ND_AS) {
+    case ND_AS:
         gen_lval(node->lhs);
         gen(node->rhs);
 
@@ -156,7 +146,42 @@ void gen(Node *node) {
         printf("  setl al\n");
         printf("  movzb rax, al\n");
         break;
+    default:
+        error("unable generate code\n");
     }
 
     printf("  push rax\n");
+}
+
+int align(int n, int align) {
+    if (n < align) return align;
+    while (n%align)
+        n++;
+    return n;
+}
+
+void codegen() {
+    printf(".intel_syntax noprefix\n");
+    printf(".global main\n");
+    printf("main:\n");
+
+    int stackSize = 0;
+    for (LVar *lvar = locals; lvar; lvar=lvar->next)
+        stackSize += 8;
+    stackSize = align(stackSize, 16);
+
+    // prologue
+    printf("  push rbp\n");
+    printf("  mov rbp, rsp\n");
+    printf("  sub rsp, %d\n", stackSize);
+
+    for (Node *node=code; code; code=code->next) {
+        gen(code);
+        printf("  pop rax\n");
+    }
+
+    // epilogue
+    printf("  mov rsp, rbp\n");
+    printf("  pop rbp\n");
+    printf("  ret\n");
 }
