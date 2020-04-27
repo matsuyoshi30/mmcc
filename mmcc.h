@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -64,6 +65,7 @@ typedef enum {
     ND_WHILE,
     ND_FOR,
     ND_BLOCK, // {...}
+    ND_FUNC,
     ND_RET,
     ND_NUM,
 } Nodekind;
@@ -87,6 +89,8 @@ struct Node {
     Node *postop;
 
     Node *blocks; // for ND_BLOCK
+
+    char *funcname;
 };
 
 typedef struct LVar LVar;

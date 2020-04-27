@@ -23,10 +23,8 @@ void gen(Node *node) {
         printf("  ret\n");
         return;
     case ND_BLOCK:
-        for (Node *block=node->blocks; block; block=block->next) {
+        for (Node *block=node->blocks; block; block=block->next)
             gen(block);
-            printf("  pop rax\n");
-        }
         return;
     case ND_IF: {
         int seq = labels++;
@@ -78,6 +76,10 @@ void gen(Node *node) {
     }
     case ND_NUM:
         printf("  push %d\n", node->val);
+        return;
+    case ND_FUNC:
+        printf("  call %s\n", node->funcname);
+        printf("  push rax\n");
         return;
     case ND_LV:
         gen_lval(node);

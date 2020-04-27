@@ -230,7 +230,7 @@ Node *unary() {
     return primary();
 }
 
-// primary = '(' expr ')' | ident | num
+// primary = '(' expr ')' | ident ( "(" ")" )? | num
 Node *primary() {
     if (consume("(")) {
         Node *node = expr();
@@ -241,19 +241,25 @@ Node *primary() {
     Token *tok = consume_ident();
     if (tok) {
         Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_LV;
-
-        LVar *lvar = find_lvar(tok);
-        if (lvar) {
-            node->offset = lvar->offset;
+        if (consume("(")) {
+            node->kind = ND_FUNC;
+            node->funcname = strndup(tok->str, tok->len);
+            expect(")");
         } else {
-            lvar = calloc(1, sizeof(LVar));
-            lvar->next = locals;
-            lvar->name = tok->str;
-            lvar->len = tok->len;
-            lvar->offset = locals->offset + 8;
-            node->offset = lvar->offset;
-            locals = lvar;
+            node->kind = ND_LV;
+
+            LVar *lvar = find_lvar(tok);
+            if (lvar) {
+                node->offset = lvar->offset;
+            } else {
+                lvar = calloc(1, sizeof(LVar));
+                lvar->next = locals;
+                lvar->name = tok->str;
+                lvar->len = tok->len;
+                lvar->offset = locals->offset + 8;
+                node->offset = lvar->offset;
+                locals = lvar;
+            }
         }
 
         return node;
