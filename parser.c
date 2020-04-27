@@ -39,6 +39,7 @@ Node *add();
 Node *mul();
 Node *unary();
 Node *primary();
+Node *funcargs();
 
 // program = stmt*
 void program() {
@@ -230,7 +231,7 @@ Node *unary() {
     return primary();
 }
 
-// primary = '(' expr ')' | ident ( "(" ")" )? | num
+// primary = '(' expr ')' | ident ( "(" (args)* ")" )? | num
 Node *primary() {
     if (consume("(")) {
         Node *node = expr();
@@ -244,7 +245,7 @@ Node *primary() {
         if (consume("(")) {
             node->kind = ND_FUNC;
             node->funcname = strndup(tok->str, tok->len);
-            expect(")");
+            node->args = funcargs();
         } else {
             node->kind = ND_LV;
 
@@ -266,4 +267,19 @@ Node *primary() {
     }
 
     return new_node_num(expect_number());
+}
+
+Node *funcargs() {
+    if (consume(")"))
+        return NULL; // no argument
+
+    Node *head = new_node_num(expect_number());
+    Node *cur = head;
+    while (consume(",")) {
+        cur->next = new_node_num(expect_number());
+        cur = cur->next;
+    }
+    expect(")");
+
+    return head;
 }

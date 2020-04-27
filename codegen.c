@@ -3,6 +3,7 @@
 // Code generator
 
 static int labels = 1;
+static char *argRegs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 void gen_lval(Node *node) {
     if (node->kind != ND_LV)
@@ -77,10 +78,19 @@ void gen(Node *node) {
     case ND_NUM:
         printf("  push %d\n", node->val);
         return;
-    case ND_FUNC:
+    case ND_FUNC: {
+        int num_of_args = 0;
+        for (Node *arg=node->args; arg; arg=arg->next) {
+            gen(arg);
+            num_of_args++;
+        }
+
+        for (int i=num_of_args-1; i>=0; i--)
+            printf("  pop %s\n", argRegs[i]);
         printf("  call %s\n", node->funcname);
         printf("  push rax\n");
         return;
+    }
     case ND_LV:
         gen_lval(node);
         printf("  pop rax\n");

@@ -91,6 +91,7 @@ struct Node {
     Node *blocks; // for ND_BLOCK
 
     char *funcname;
+    Node *args;
 };
 
 typedef struct LVar LVar;
