@@ -98,6 +98,7 @@ LVar *funcparams() {
 
     LVar params;
     params.next = NULL;
+    params.offset = 0;
     LVar *cur = &params;
 
     Type *ty = consume_type();
