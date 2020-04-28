@@ -67,4 +67,8 @@ assert 21 'main() { return testFunc3(1, 2, 3, 4, 5, 6); }'
 assert 3 'main() { return ret(); } ret() { return 3; }'
 assert 5 'main() { return ret(); } ret() { a=5; return a; }'
 
+assert 3 'main() { return ret(1, 2); } ret(x, y) { return x+y; }'
+assert 21 'main() { return ret(1, 2, 3, 4, 5, 6); } ret(a, b, c, d, e, f) { return a+b+c+d+e+f; }'
+assert 8 'main() { return fib(6); } fib(n) { if (n <= 2) { return 1; } else { return fib(n-1) + fib(n-2); } }'
+
 echo OK

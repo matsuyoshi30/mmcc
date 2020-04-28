@@ -180,7 +180,7 @@ void codegen() {
         printf("%s:\n", func->name);
 
         int stackSize = 0;
-        for (LVar *lvar = func->locals; lvar; lvar=lvar->next)
+        for (LVar *lvar=func->locals; lvar; lvar=lvar->next)
             stackSize += 8;
         stackSize = align(stackSize, 16);
 
@@ -188,6 +188,11 @@ void codegen() {
         printf("  push rbp\n");
         printf("  mov rbp, rsp\n");
         printf("  sub rsp, %d\n", stackSize);
+
+        int i = 0;
+        for (LVar *param=func->params; param; param=param->next) {
+            printf("  mov [rbp-%d], %s\n", param->offset, argRegs[i++]);
+        }
 
         for (Node *node=func->body; node; node=node->next) {
             gen(node);

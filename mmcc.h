@@ -109,6 +109,7 @@ typedef struct Function Function;
 struct Function {
     Function *next;
     char *name;
+    LVar *params;
     LVar *locals;
     Node *body;
 };

@@ -30,6 +30,7 @@ Function *code;
 
 void program();
 Function *function();
+LVar *funcparams();
 Node *stmt();
 Node *cond();
 Node *expr();
@@ -56,13 +57,13 @@ void program() {
     code = head.next;
 }
 
-// function = ident "(" ")" "{" stmt* "}"
+// function = ident "(" (params)* ")" "{" stmt* "}"
 Function *function() {
     Function *func = calloc(1, sizeof(Function));
     char *funcname = expect_ident();
 
     expect("(");
-    expect(")");
+    LVar *params = funcparams();
     expect("{");
 
     Node head;
@@ -78,10 +79,40 @@ Function *function() {
     }
 
     func->name = funcname;
+    func->params = params;
     func->locals = locals;
     func->body = head.next;
 
     return func;
+}
+
+LVar *funcparams() {
+    if (consume(")"))
+        return NULL; // no parameters
+
+    LVar *params = calloc(1, sizeof(LVar));
+    params->offset = 0;
+    LVar *cur = params;
+
+    Token *tok = consume_ident();
+    if (tok) {
+        cur->name = strndup(tok->str, tok->len);
+        cur->len = tok->len;
+        cur->offset += 8;
+
+        while (consume(",")) {
+            cur->next = calloc(1, sizeof(LVar));
+            cur->next->name = strndup(tok->str, tok->len);
+            cur->next->len = tok->len;
+            cur->next->offset = cur->offset + 8;
+            cur = cur->next;
+
+            tok = consume_ident();
+        }
+    }
+    expect(")");
+
+    return params;
 }
 
 // stmt = "return" expr ";"
@@ -299,10 +330,10 @@ Node *funcargs() {
     if (consume(")"))
         return NULL; // no argument
 
-    Node *head = new_node_num(expect_number());
+    Node *head = add();
     Node *cur = head;
     while (consume(",")) {
-        cur->next = new_node_num(expect_number());
+        cur->next = add();
         cur = cur->next;
     }
     expect(")");
