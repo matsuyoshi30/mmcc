@@ -57,27 +57,33 @@ void program() {
     code = head.next;
 }
 
-// function = ident "(" (params)* ")" "{" stmt* "}"
+// function = type ident "(" (type params)* ")" "{" stmt* "}"
 Function *function() {
     Function *func = calloc(1, sizeof(Function));
+    Type *ty = consume_type();
     char *funcname = expect_ident();
 
     expect("(");
+
+    locals = calloc(1, sizeof(LVar));
+    locals->offset = 0;
+
     LVar *params = funcparams();
+    if (params)
+        locals = params;
+
     expect("{");
 
     Node head;
     head.next = NULL;
     Node *cur = &head;
 
-    locals = calloc(1, sizeof(LVar));
-    locals->offset = 0;
-
     while (!consume("}")) {
         cur->next = stmt();
         cur = cur->next;
     }
 
+    func->type = ty->kind;
     func->name = funcname;
     func->params = params;
     func->locals = locals;
@@ -90,32 +96,32 @@ LVar *funcparams() {
     if (consume(")"))
         return NULL; // no parameters
 
-    LVar *params = calloc(1, sizeof(LVar));
-    params->offset = 0;
-    LVar *cur = params;
+    LVar params;
+    params.next = NULL;
+    LVar *cur = &params;
 
+    Type *ty = consume_type();
     Token *tok = consume_ident();
-    if (tok) {
-        cur->name = strndup(tok->str, tok->len);
-        cur->len = tok->len;
-        cur->offset += 8;
+    while (ty && tok) {
+        cur->next = calloc(1, sizeof(LVar));
+        cur->next->type = ty->kind;
+        cur->next->name = strndup(tok->str, tok->len);
+        cur->next->len = tok->len;
+        cur->next->offset = cur->offset + 8;
+        cur = cur->next;
 
-        while (consume(",")) {
-            cur->next = calloc(1, sizeof(LVar));
-            cur->next->name = strndup(tok->str, tok->len);
-            cur->next->len = tok->len;
-            cur->next->offset = cur->offset + 8;
-            cur = cur->next;
-
-            tok = consume_ident();
-        }
+        if (!consume(","))
+            break;
+        ty = consume_type();
+        tok = consume_ident();
     }
     expect(")");
 
-    return params;
+    return params.next;
 }
 
 // stmt = "return" expr ";"
+//        | type ident ";"
 //        | "{" stmt* "}"
 //        | "if" "(" cond ")" stmt ( "else" stmt )?
 //        | "while" "(" cond ")" stmt
@@ -136,6 +142,26 @@ Node *stmt() {
             cur = cur->next;
         }
         node->blocks = head.next;
+        return node;
+    }
+
+    Type *ty = consume_type();
+    if (ty) {
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_LV;
+
+        Token *tok = consume_ident();
+
+        LVar *lvar = calloc(1, sizeof(LVar));
+        lvar->next = locals;
+        lvar->name = tok->str;
+        lvar->len = tok->len;
+        lvar->offset = locals->offset + 8;
+        node->offset = lvar->offset;
+        locals = lvar;
+
+        expect(";");
+
         return node;
     }
 
@@ -307,17 +333,7 @@ Node *primary() {
             node->kind = ND_LV;
 
             LVar *lvar = find_lvar(tok);
-            if (lvar) {
-                node->offset = lvar->offset;
-            } else {
-                lvar = calloc(1, sizeof(LVar));
-                lvar->next = locals;
-                lvar->name = tok->str;
-                lvar->len = tok->len;
-                lvar->offset = locals->offset + 8;
-                node->offset = lvar->offset;
-                locals = lvar;
-            }
+            node->offset = lvar->offset;
         }
 
         return node;

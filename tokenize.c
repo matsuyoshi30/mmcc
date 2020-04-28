@@ -29,6 +29,17 @@ Token *consume_ident() {
     return tok;
 }
 
+// consume the current token if it is TYPE
+Type *consume_type() {
+    if (token->kind != TK_TYPE)
+        return NULL;
+    Type *ty = calloc(1, sizeof(Type));;
+    if (strncmp(token->str, "int", 3) == 0)
+        ty->kind = TY_INT;
+    token = token->next;
+    return ty;
+}
+
 // check whether the current token matches 'op'
 void expect(char *op) {
     if (token->kind != TK_RESERVED || token->len != strlen(op) || memcmp(token->str, op, token->len))
@@ -112,6 +123,12 @@ void tokenize() {
     while (*p) {
         if (isspace(*p)) {
             p++;
+            continue;
+        }
+
+        if (strncmp(p, "int", 3) == 0 && !is_alnum(p[3])) {
+            cur = new_token(TK_TYPE, cur, p, 3);
+            p+=3;
             continue;
         }
 

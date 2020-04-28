@@ -21,6 +21,7 @@ typedef enum {
     TK_ELSE,
     TK_WHILE,
     TK_FOR,
+    TK_TYPE,
     TK_RETURN,
     TK_EOF,
 } Tokenkind;
@@ -37,9 +38,20 @@ struct Token {
 
 extern Token *token;
 
+typedef enum {
+    TY_INT,
+} Typekind;
+
+typedef struct Type Type;
+
+struct Type {
+    Typekind kind;
+};
+
 bool consume(char *op);
 bool consume_tk(Tokenkind tk);
 Token *consume_ident();
+Type *consume_type();
 void expect(char *op);
 int expect_number();
 char *expect_ident();
@@ -98,6 +110,7 @@ struct Node {
 typedef struct LVar LVar;
 
 struct LVar {
+    Typekind type;
     LVar *next;
     char *name;
     int len;
@@ -108,6 +121,7 @@ typedef struct Function Function;
 
 struct Function {
     Function *next;
+    Typekind type;
     char *name;
     LVar *params;
     LVar *locals;
