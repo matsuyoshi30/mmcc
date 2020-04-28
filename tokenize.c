@@ -45,6 +45,15 @@ int expect_number() {
     return val;
 }
 
+// check whether the current token is ident
+char *expect_ident() {
+    if (token->kind != TK_IDENT)
+        error_at(token->str, "expected identifier but got '%s'\n", token->str);
+    char *name = strndup(token->str, token->len);
+    token = token->next;
+    return name;
+}
+
 // check whether the current token is EOF
 bool at_eof() {
     return token->kind == TK_EOF;

@@ -42,6 +42,7 @@ bool consume_tk(Tokenkind tk);
 Token *consume_ident();
 void expect(char *op);
 int expect_number();
+char *expect_ident();
 bool at_eof();
 
 void tokenize();
@@ -103,8 +104,17 @@ struct LVar {
     int offset;
 };
 
+typedef struct Function Function;
+
+struct Function {
+    Function *next;
+    char *name;
+    LVar *locals;
+    Node *body;
+};
+
 extern LVar *locals;
-extern Node *code;
+extern Function *code;
 
 void program();
 

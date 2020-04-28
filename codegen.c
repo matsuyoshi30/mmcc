@@ -174,26 +174,29 @@ int align(int n, int align) {
 
 void codegen() {
     printf(".intel_syntax noprefix\n");
-    printf(".global main\n");
-    printf("main:\n");
 
-    int stackSize = 0;
-    for (LVar *lvar = locals; lvar; lvar=lvar->next)
-        stackSize += 8;
-    stackSize = align(stackSize, 16);
+    for (Function *func=code; func; func=func->next) {
+        printf(".global %s\n", func->name);
+        printf("%s:\n", func->name);
 
-    // prologue
-    printf("  push rbp\n");
-    printf("  mov rbp, rsp\n");
-    printf("  sub rsp, %d\n", stackSize);
+        int stackSize = 0;
+        for (LVar *lvar = func->locals; lvar; lvar=lvar->next)
+            stackSize += 8;
+        stackSize = align(stackSize, 16);
 
-    for (Node *node=code; code; code=code->next) {
-        gen(code);
-        printf("  pop rax\n");
+        // prologue
+        printf("  push rbp\n");
+        printf("  mov rbp, rsp\n");
+        printf("  sub rsp, %d\n", stackSize);
+
+        for (Node *node=func->body; node; node=node->next) {
+            gen(node);
+            printf("  pop rax\n");
+        }
+
+        // epilogue
+        printf("  mov rsp, rbp\n");
+        printf("  pop rbp\n");
+        printf("  ret\n");
     }
-
-    // epilogue
-    printf("  mov rsp, rbp\n");
-    printf("  pop rbp\n");
-    printf("  ret\n");
 }
