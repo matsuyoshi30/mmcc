@@ -74,6 +74,8 @@ typedef enum {
     ND_OL, // <=
     ND_AS, // =
     ND_LV, // local variable
+    ND_ADDR,  // &
+    ND_DEREF, // *
     ND_IF,
     ND_WHILE,
     ND_FOR,
