@@ -87,6 +87,16 @@ typedef enum {
     ND_NUM,
 } Nodekind;
 
+typedef struct LVar LVar;
+
+struct LVar {
+    Type *type;
+    LVar *next;
+    char *name;
+    int len;
+    int offset;
+};
+
 typedef struct Node Node;
 
 struct Node {
@@ -97,7 +107,7 @@ struct Node {
     Node *rhs;
 
     int val;    // for ND_NUM
-    int offset; // for ND_LV
+    LVar *lvar;
 
     Node *cond;
     Node *then;
@@ -111,21 +121,11 @@ struct Node {
     Node *args;
 };
 
-typedef struct LVar LVar;
-
-struct LVar {
-    Type *type;
-    LVar *next;
-    char *name;
-    int len;
-    int offset;
-};
-
 typedef struct Function Function;
 
 struct Function {
     Function *next;
-    Typekind type;
+    Type *type;
     char *name;
     LVar *params;
     LVar *locals;

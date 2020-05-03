@@ -10,7 +10,7 @@ void gen(Node *node);
 void gen_lval(Node *node) {
     if (node->kind == ND_LV) {
         printf("  mov rax, rbp\n");
-        printf("  sub rax, %d\n", node->offset);
+        printf("  sub rax, %d\n", node->lvar->offset);
         printf("  push rax\n");
         return;
     } else if (node->kind == ND_DEREF) {
@@ -19,6 +19,13 @@ void gen_lval(Node *node) {
     }
 
     error("The left value of the assignment is not a variable.");
+}
+
+void load() {
+    printf("  pop rax\n");
+    printf("  mov rax, [rax]\n");
+    printf("  push rax\n");
+    return;
 }
 
 void gen(Node *node) {
@@ -100,9 +107,7 @@ void gen(Node *node) {
     }
     case ND_LV:
         gen_lval(node);
-        printf("  pop rax\n");
-        printf("  mov rax, [rax]\n"); // load value from the address in rax into rax
-        printf("  push rax\n");
+        load();
         return;
     case ND_AS:
         gen_lval(node->lhs);
@@ -118,9 +123,7 @@ void gen(Node *node) {
         return;
     case ND_DEREF:
         gen(node->lhs);
-        printf("  pop rax\n");
-        printf("  mov rax, [rax]\n");
-        printf("  push rax\n");
+        load();
         return;
     }
 
@@ -182,7 +185,8 @@ void gen(Node *node) {
 }
 
 int align(int n, int align) {
-    if (n < align) return align;
+    if (n < align)
+        return align;
     while (n%align)
         n++;
     return n;

@@ -10,6 +10,35 @@ Node *new_node(Nodekind kind, Node *lhs, Node *rhs) {
     return node;
 }
 
+Node *new_node_addr(Node *target) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_ADDR;
+    node->lhs = target;
+    return node;
+}
+
+Node *new_node_deref(Node *target) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_DEREF;
+    node->lhs = target;
+    return node;
+}
+
+Node *new_node_func(char *funcname, Node *args) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_FUNC;
+    node->funcname = funcname;
+    node->args = args;
+    return node;
+}
+
+Node *new_node_lvar(LVar *lvar) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_LV;
+    node->lvar = lvar;
+    return node;
+}
+
 Node *new_node_num(int val) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_NUM;
@@ -57,7 +86,7 @@ void program() {
     code = head.next;
 }
 
-// function = type ident "(" (type params)* ")" "{" stmt* "}"
+// function = type ident "(" funcparams* ")" "{" stmt* "}"
 Function *function() {
     Function *func = calloc(1, sizeof(Function));
     Type *ty = consume_type();
@@ -77,13 +106,12 @@ Function *function() {
     Node head;
     head.next = NULL;
     Node *cur = &head;
-
     while (!consume("}")) {
         cur->next = stmt();
         cur = cur->next;
     }
 
-    func->type = ty->kind;
+    func->type = ty;
     func->name = funcname;
     func->params = params;
     func->locals = locals;
@@ -92,37 +120,38 @@ Function *function() {
     return func;
 }
 
+// funcparams = ( type ident ( "," type ident )* )?
 LVar *funcparams() {
     if (consume(")"))
         return NULL; // no parameters
 
-    LVar params;
-    params.next = NULL;
-    params.offset = 0;
-    LVar *cur = &params;
-
     Type *ty = consume_type();
     Token *tok = consume_ident();
-    while (ty && tok) {
+
+    LVar *params = calloc(1, sizeof(LVar));
+    params->type = ty;
+    params->name = strndup(tok->str, tok->len);
+    params->len = tok->len;
+    params->offset = 8;
+    LVar *cur = params;
+
+    while (consume(",")) {
+        ty = consume_type();
+        tok = consume_ident();
         cur->next = calloc(1, sizeof(LVar));
         cur->next->type = ty;
         cur->next->name = strndup(tok->str, tok->len);
         cur->next->len = tok->len;
         cur->next->offset = cur->offset + 8;
         cur = cur->next;
-
-        if (!consume(","))
-            break;
-        ty = consume_type();
-        tok = consume_ident();
     }
     expect(")");
 
-    return params.next;
+    return params;
 }
 
-// stmt = "return" expr ";"
-//        | type ( "*" )* ident ";"
+// stmt = type ( "*" )* ident ";"
+//        | "return" expr ";"
 //        | "{" stmt* "}"
 //        | "if" "(" cond ")" stmt ( "else" stmt )?
 //        | "while" "(" cond ")" stmt
@@ -130,6 +159,35 @@ LVar *funcparams() {
 //        | expr ";"
 Node *stmt() {
     Node *node;
+
+    Type *ty = consume_type();
+    if (ty) {
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_LV;
+
+        Token *tok = consume_ident();
+
+        LVar *lvar = calloc(1, sizeof(LVar));
+        lvar->type = ty;
+        lvar->next = locals;
+        lvar->name = tok->str;
+        lvar->len = tok->len;
+        lvar->offset = locals->offset + 8;
+        node->lvar = lvar;
+        locals = node->lvar;
+
+        expect(";");
+
+        return node;
+    }
+
+    if (consume_tk(TK_RETURN)) {
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_RET;
+        node->lhs = expr();
+        expect(";");
+        return node;
+    }
 
     if (consume("{")) {
         Node head;
@@ -146,32 +204,7 @@ Node *stmt() {
         return node;
     }
 
-    Type *ty = consume_type();
-    if (ty) {
-        node = calloc(1, sizeof(Node));
-        node->kind = ND_LV;
-
-        Token *tok = consume_ident();
-
-        LVar *lvar = calloc(1, sizeof(LVar));
-        lvar->type = ty;
-        lvar->next = locals;
-        lvar->name = tok->str;
-        lvar->len = tok->len;
-        lvar->offset = locals->offset + 8;
-        node->offset = lvar->offset;
-        locals = lvar;
-
-        expect(";");
-
-        return node;
-    }
-
-    if (consume_tk(TK_RETURN)) {
-        node = calloc(1, sizeof(Node));
-        node->kind = ND_RET;
-        node->lhs = expr();
-    } else if (consume_tk(TK_IF)) {
+    if (consume_tk(TK_IF)) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_IF;
         expect("(");
@@ -181,7 +214,9 @@ Node *stmt() {
         if (consume_tk(TK_ELSE))
             node->els = stmt();
         return node;
-    } else if (consume_tk(TK_WHILE)) {
+    }
+
+    if (consume_tk(TK_WHILE)) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_WHILE;
         expect("(");
@@ -189,7 +224,9 @@ Node *stmt() {
         expect(")");
         node->then = stmt();
         return node;
-    } else if (consume_tk(TK_FOR)) {
+    }
+
+    if (consume_tk(TK_FOR)) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_FOR;
         expect("(");
@@ -217,10 +254,9 @@ Node *stmt() {
 
         node->then = stmt();
         return node;
-    } else {
-        node = expr();
     }
 
+    node = expr();
     expect(";");
 
     return node;
@@ -308,28 +344,19 @@ Node *mul() {
 
 // unary = ( '+' | '-' )? primary | '&' unary | '*' unary
 Node *unary() {
-    if (consume("&")) {
-        Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_ADDR;
-        node->lhs = unary();
-        return node;
-    }
-    if (consume("*")) {
-        Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_DEREF;
-        node->lhs = unary();
-        return node;
-    }
-
     if (consume("+"))
         return unary();
     if (consume("-"))
         return new_node(ND_SUB, new_node_num(0), unary());
+    if (consume("&"))
+        return new_node_addr(unary());
+    if (consume("*"))
+        return new_node_deref(unary());
 
     return primary();
 }
 
-// primary = '(' expr ')' | ident ( "(" (args)* ")" )? | num
+// primary = '(' expr ')' | ident ( "(" ( funcargs )* ")" )? | num
 Node *primary() {
     if (consume("(")) {
         Node *node = expr();
@@ -339,24 +366,16 @@ Node *primary() {
 
     Token *tok = consume_ident();
     if (tok) {
-        Node *node = calloc(1, sizeof(Node));
-        if (consume("(")) {
-            node->kind = ND_FUNC;
-            node->funcname = strndup(tok->str, tok->len);
-            node->args = funcargs();
-        } else {
-            node->kind = ND_LV;
-
-            LVar *lvar = find_lvar(tok);
-            node->offset = lvar->offset;
-        }
-
-        return node;
+        if (consume("("))
+            return new_node_func(strndup(tok->str, tok->len), funcargs());
+        else
+            return new_node_lvar(find_lvar(tok));
     }
 
     return new_node_num(expect_number());
 }
 
+// funcargs = ( add ( "," add )* )?
 Node *funcargs() {
     if (consume(")"))
         return NULL; // no argument
