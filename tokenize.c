@@ -33,7 +33,7 @@ Token *consume_ident() {
 Type *consume_type() {
     if (token->kind != TK_TYPE)
         return NULL;
-    Type *ty = calloc(1, sizeof(Type));;
+    Type *ty = calloc(1, sizeof(Type));
     if (strncmp(token->str, "int", 3) == 0)
         ty->kind = TY_INT;
     token = token->next;
