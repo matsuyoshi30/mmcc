@@ -105,7 +105,7 @@ LVar *funcparams() {
     Token *tok = consume_ident();
     while (ty && tok) {
         cur->next = calloc(1, sizeof(LVar));
-        cur->next->type = ty->kind;
+        cur->next->type = ty;
         cur->next->name = strndup(tok->str, tok->len);
         cur->next->len = tok->len;
         cur->next->offset = cur->offset + 8;
@@ -122,7 +122,7 @@ LVar *funcparams() {
 }
 
 // stmt = "return" expr ";"
-//        | type ident ";"
+//        | type ( "*" )* ident ";"
 //        | "{" stmt* "}"
 //        | "if" "(" cond ")" stmt ( "else" stmt )?
 //        | "while" "(" cond ")" stmt
@@ -154,6 +154,7 @@ Node *stmt() {
         Token *tok = consume_ident();
 
         LVar *lvar = calloc(1, sizeof(LVar));
+        lvar->type = ty;
         lvar->next = locals;
         lvar->name = tok->str;
         lvar->len = tok->len;

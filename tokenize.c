@@ -37,6 +37,15 @@ Type *consume_type() {
     if (strncmp(token->str, "int", 3) == 0)
         ty->kind = TY_INT;
     token = token->next;
+
+    // for TY_PTR
+    while (consume("*")) {
+        Type *ptr = calloc(1, sizeof(Type));
+        ptr->kind = TY_PTR;
+        ptr->ptr_to = ty;
+        ty = ptr;
+    }
+
     return ty;
 }
 

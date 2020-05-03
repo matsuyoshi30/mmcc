@@ -40,12 +40,14 @@ extern Token *token;
 
 typedef enum {
     TY_INT,
+    TY_PTR,
 } Typekind;
 
 typedef struct Type Type;
 
 struct Type {
     Typekind kind;
+    struct Type *ptr_to;
 };
 
 bool consume(char *op);
@@ -112,7 +114,7 @@ struct Node {
 typedef struct LVar LVar;
 
 struct LVar {
-    Typekind type;
+    Type *type;
     LVar *next;
     char *name;
     int len;
