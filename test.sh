@@ -3,6 +3,8 @@ cat <<EOF | cc -x c -c -o tmp2.o -
 int testFunc1() { return 5; }
 int testFunc2(int x, int y) { return x+y; }
 int testFunc3(int a, int b, int c, int d, int e, int f) { return a+b+c+d+e+f;}
+
+void alloc4(int **p, int a, int b, int c, int d) { int dummy[4]={a,b,c,d}; *p=dummy; }
 EOF
 
 assert() {
@@ -75,10 +77,15 @@ assert 3 'int main() { int x=3; return *&x; }'
 assert 3 'int main() { int x=3; int *y=&x; int **z=&y; return **z; }'
 assert 3 'int main() { int x; int *y=&x; *y=3; return x; }'
 
-assert 5 'int main() { int x=3; int y=5; return *(&x+8); }'
-assert 3 'int main() { int x=3; int y=5; int *z=&y-8; return *z; }'
-assert 3 'int main() { int x=3; int y=5; return *(&y-8); }'
-assert 7 'int main() { int x=3; int y=5; *(&x+8)=7; return y; }'
-assert 7 'int main() { int x=3; int y=5; *(&y-8)=7; return x; }'
+assert 5 'int main() { int x=3; int y=5; return *(&x+1); }'
+assert 3 'int main() { int x=3; int y=5; int *z=&y-1; return *z; }'
+assert 3 'int main() { int x=3; int y=5; return *(&y-1); }'
+assert 7 'int main() { int x=3; int y=5; *(&x+1)=7; return y; }'
+assert 7 'int main() { int x=3; int y=5; *(&y-1)=7; return x; }'
+
+assert 4 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q=p+2; return *q; }'
+assert 8 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q=p+3; return *q; }'
+assert 1 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q=p+2; return *(q-2); }'
+assert 2 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q=p+3; return *(q-2); }'
 
 echo OK

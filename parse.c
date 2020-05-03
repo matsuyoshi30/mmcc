@@ -317,15 +317,51 @@ Node *relational() {
     }
 }
 
+Node *new_add(Node *lhs, Node *rhs) {
+    switch (lhs->kind) {
+    case ND_LV:
+        if (lhs->lvar->type->kind == TY_PTR) {
+            if (lhs->lvar->type->ptr_to->kind == TY_INT)
+                rhs = new_node(ND_MUL, rhs, new_node_num(4));
+            else if (lhs->lvar->type->ptr_to->kind == TY_PTR)
+                rhs = new_node(ND_MUL, rhs, new_node_num(8));
+        }
+        break;
+    case ND_ADDR:
+        rhs = new_node(ND_MUL, rhs, new_node_num(8));
+        break;
+    }
+
+    return new_node(ND_ADD, lhs, rhs);
+}
+
+Node *new_sub(Node *lhs, Node *rhs) {
+    switch (lhs->kind) {
+    case ND_LV:
+        if (lhs->lvar->type->kind == TY_PTR) {
+            if (lhs->lvar->type->ptr_to->kind == TY_INT)
+                rhs = new_node(ND_MUL, rhs, new_node_num(4));
+            else if (lhs->lvar->type->ptr_to->kind == TY_PTR)
+                rhs = new_node(ND_MUL, rhs, new_node_num(8));
+        }
+        break;
+    case ND_ADDR:
+        rhs = new_node(ND_MUL, rhs, new_node_num(8));
+        break;
+    }
+
+    return new_node(ND_SUB, lhs, rhs);
+}
+
 // add = mul ( "+" mul | "-" mul )*
 Node *add() {
     Node *node = mul();
 
     for (;;) {
         if (consume("+"))
-            node = new_node(ND_ADD, node, mul());
+            node = new_add(node, mul());
         else if (consume("-"))
-            node = new_node(ND_SUB, node, mul());
+            node = new_sub(node, mul());
         else
             return node;
     }
