@@ -71,13 +71,14 @@ assert 3 'int main() { return ret(1, 2); } int ret(int x, int y) { return x+y; }
 assert 21 'int main() { return ret(1, 2, 3, 4, 5, 6); } int ret(int a, int b, int c, int d, int e, int f) { return a+b+c+d+e+f; }'
 assert 8 'int main() { return fib(6); } int fib(int n) { if (n <= 2) { return 1; } else { return fib(n-1) + fib(n-2); } }'
 
-assert 3 'int main() { int x; int *y; int **z; x=3; y=&x; z=&y; return **z; }'
-assert 5 'int main() { int x; int y; x=3; y=5; return *(&x-8); }'
-assert 3 'int main() { int x; int y; int *z; x=3; y=5; z=&y+8; return *z; }'
-assert 3 'int main() { int x; int y; x=3; y=5; return *(&y+8); }'
-assert 7 'int main() { int x; int y; x=3; y=5; *(&x-8)=7; return y; }'
-assert 7 'int main() { int x; int y; x=3; y=5; *(&y+8)=7; return x; }'
+assert 3 'int main() { int x=3; return *&x; }'
+assert 3 'int main() { int x=3; int *y=&x; int **z=&y; return **z; }'
+assert 3 'int main() { int x; int *y=&x; *y=3; return x; }'
 
-assert 3 'int main() { int x; int *y; y=&x; *y=3; return x; }'
+assert 5 'int main() { int x=3; int y=5; return *(&x+8); }'
+assert 3 'int main() { int x=3; int y=5; int *z=&y-8; return *z; }'
+assert 3 'int main() { int x=3; int y=5; return *(&y-8); }'
+assert 7 'int main() { int x=3; int y=5; *(&x+8)=7; return y; }'
+assert 7 'int main() { int x=3; int y=5; *(&y-8)=7; return x; }'
 
 echo OK

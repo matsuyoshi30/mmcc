@@ -150,7 +150,7 @@ LVar *funcparams() {
     return params;
 }
 
-// stmt = type ( "*" )* ident ";"
+// stmt = type ( "*" )* ident ( "=" expr )? ";"
 //        | "return" expr ";"
 //        | "{" stmt* "}"
 //        | "if" "(" cond ")" stmt ( "else" stmt )?
@@ -175,6 +175,9 @@ Node *stmt() {
         lvar->offset = locals->offset + 8;
         node->lvar = lvar;
         locals = node->lvar;
+
+        if (consume("="))
+            node = new_node(ND_AS, node, expr());
 
         expect(";");
 

@@ -200,8 +200,10 @@ void codegen() {
         printf("%s:\n", func->name);
 
         int stackSize = 0;
-        for (LVar *lvar=func->locals; lvar; lvar=lvar->next)
+        for (LVar *lvar=func->locals; lvar; lvar=lvar->next) {
             stackSize += 8;
+            lvar->offset = stackSize;
+        }
         stackSize = align(stackSize, 16);
 
         // prologue
