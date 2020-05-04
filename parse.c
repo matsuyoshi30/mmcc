@@ -120,11 +120,8 @@ Node *new_add(Node *lhs, Node *rhs) {
 
     if (lhs->type->kind == TY_INT && rhs->type->kind == TY_INT)
         return new_node(ND_ADD, lhs, rhs);
-    else if ((lhs->kind == ND_ADDR) || (lhs->type->kind == TY_ARR)
-             || (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_PTR))
+    else if ((lhs->kind == ND_ADDR) || (lhs->type->kind == TY_ARR) || (lhs->type->kind == TY_PTR))
         rhs = new_node(ND_MUL, rhs, new_node_num(lhs->type->ptr_to->size));
-    else if (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_INT)
-        rhs = new_node(ND_MUL, rhs, new_node_num(4));
 
     return new_node(ND_ADD, lhs, rhs);
 }
@@ -135,11 +132,8 @@ Node *new_sub(Node *lhs, Node *rhs) {
 
     if (lhs->type->kind == TY_INT && rhs->type->kind == TY_INT)
         return new_node(ND_SUB, lhs, rhs);
-    else if ((lhs->kind == ND_ADDR) || (lhs->type->kind == TY_ARR)
-             || (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_PTR))
+    else if ((lhs->kind == ND_ADDR) || (lhs->type->kind == TY_ARR) || (lhs->type->kind == TY_PTR))
         rhs = new_node(ND_MUL, rhs, new_node_num(lhs->type->ptr_to->size));
-    else if (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_INT)
-        rhs = new_node(ND_MUL, rhs, new_node_num(4));
 
     return new_node(ND_SUB, lhs, rhs);
 }
