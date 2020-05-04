@@ -416,7 +416,7 @@ Node *mul() {
     }
 }
 
-// unary = ( '+' | '-' )? primary | '&' unary | '*' unary
+// unary = ( '+' | '-' )? primary | '&' unary | '*' unary | "sizeof" unary
 Node *unary() {
     if (consume("+"))
         return unary();
@@ -426,6 +426,15 @@ Node *unary() {
         return new_node_addr(unary());
     if (consume("*"))
         return new_node_deref(unary());
+
+    if (consume_tk(TK_SIZEOF)) {
+        Node *node = unary();
+        check_type(node);
+        if (node->type->kind == TY_INT)
+            return new_node_num(4);
+        else if (node->type->kind == TY_PTR)
+            return new_node_num(8);
+    }
 
     return primary();
 }

@@ -97,7 +97,7 @@ bool is_alnum(char c) {
 }
 
 char *is_reserved(char *c) {
-    char *kw[] = {"return", "if", "else", "while", "for"};
+    char *kw[] = {"return", "if", "else", "while", "for", "sizeof"};
     for (int i=0; i<sizeof(kw)/sizeof(*kw); i++) {
         int len = strlen(kw[i]);
         if (strncmp(c, kw[i], len) == 0 && !is_alnum(c[len]))
@@ -153,6 +153,8 @@ void tokenize() {
                 cur = new_token(TK_WHILE, cur, p, 5);
             else if (strcmp(reserved, "for") == 0)
                 cur = new_token(TK_FOR, cur, p, 3);
+            else if (strcmp(reserved, "sizeof") == 0)
+                cur = new_token(TK_SIZEOF, cur, p, 6);
             else
                 cur = new_token(TK_RESERVED, cur, p, strlen(reserved));
 

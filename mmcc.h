@@ -22,6 +22,7 @@ typedef enum {
     TK_WHILE,
     TK_FOR,
     TK_TYPE,
+    TK_SIZEOF,
     TK_RETURN,
     TK_EOF,
 } Tokenkind;
