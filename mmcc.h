@@ -101,6 +101,7 @@ typedef struct Node Node;
 
 struct Node {
     Nodekind kind;
+    Type *type;
     Node *next;
 
     Node *lhs;

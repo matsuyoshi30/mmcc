@@ -2,6 +2,49 @@
 
 // Parser
 
+Type *pointer_to(Type *ty) {
+    Type *type = calloc(1, sizeof(Type));
+    type->kind = TY_PTR;
+    type->ptr_to = ty;
+    return type;
+}
+
+void check_type(Node *node) {
+    if (!node || node->type)
+        return;
+
+    check_type(node->lhs);
+    check_type(node->rhs);
+
+    for (Node *n=node->blocks; n; n=n->next)
+        check_type(n);
+    for (Node *n=node->args; n; n=n->next)
+        check_type(n);
+
+    switch (node->kind) {
+    case ND_ADD:
+    case ND_SUB:
+    case ND_MUL:
+    case ND_DIV:
+    case ND_AS:
+        node->type = node->lhs->type;
+        return;
+    case ND_LV:
+        node->type = node->lvar->type;
+        return;
+    case ND_ADDR:
+        node->type = pointer_to(node->lhs->type);
+        return;
+    case ND_DEREF:
+        node->type = node->lhs->lvar->type->ptr_to;
+        return;
+    case ND_FUNC:
+    case ND_NUM:
+        node->type = &(Type){TY_INT};
+        return;
+    }
+}
+
 Node *new_node(Nodekind kind, Node *lhs, Node *rhs) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = kind;
@@ -44,6 +87,34 @@ Node *new_node_num(int val) {
     node->kind = ND_NUM;
     node->val = val;
     return node;
+}
+
+Node *new_add(Node *lhs, Node *rhs) {
+    check_type(lhs);
+    check_type(rhs);
+
+    if (lhs->type->kind == TY_INT && rhs->type->kind == TY_INT)
+        return new_node(ND_ADD, lhs, rhs);
+    else if ((lhs->kind == ND_ADDR) || (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_PTR))
+        rhs = new_node(ND_MUL, rhs, new_node_num(8));
+    else if (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_INT)
+        rhs = new_node(ND_MUL, rhs, new_node_num(4));
+
+    return new_node(ND_ADD, lhs, rhs);
+}
+
+Node *new_sub(Node *lhs, Node *rhs) {
+    check_type(lhs);
+    check_type(rhs);
+
+    if (lhs->type->kind == TY_INT && rhs->type->kind == TY_INT)
+        return new_node(ND_SUB, lhs, rhs);
+    else if ((lhs->kind == ND_ADDR) || (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_PTR))
+        rhs = new_node(ND_MUL, rhs, new_node_num(8));
+    else if (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_INT)
+        rhs = new_node(ND_MUL, rhs, new_node_num(4));
+
+    return new_node(ND_SUB, lhs, rhs);
 }
 
 LVar *locals;
@@ -315,42 +386,6 @@ Node *relational() {
         else
             return node;
     }
-}
-
-Node *new_add(Node *lhs, Node *rhs) {
-    switch (lhs->kind) {
-    case ND_LV:
-        if (lhs->lvar->type->kind == TY_PTR) {
-            if (lhs->lvar->type->ptr_to->kind == TY_INT)
-                rhs = new_node(ND_MUL, rhs, new_node_num(4));
-            else if (lhs->lvar->type->ptr_to->kind == TY_PTR)
-                rhs = new_node(ND_MUL, rhs, new_node_num(8));
-        }
-        break;
-    case ND_ADDR:
-        rhs = new_node(ND_MUL, rhs, new_node_num(8));
-        break;
-    }
-
-    return new_node(ND_ADD, lhs, rhs);
-}
-
-Node *new_sub(Node *lhs, Node *rhs) {
-    switch (lhs->kind) {
-    case ND_LV:
-        if (lhs->lvar->type->kind == TY_PTR) {
-            if (lhs->lvar->type->ptr_to->kind == TY_INT)
-                rhs = new_node(ND_MUL, rhs, new_node_num(4));
-            else if (lhs->lvar->type->ptr_to->kind == TY_PTR)
-                rhs = new_node(ND_MUL, rhs, new_node_num(8));
-        }
-        break;
-    case ND_ADDR:
-        rhs = new_node(ND_MUL, rhs, new_node_num(8));
-        break;
-    }
-
-    return new_node(ND_SUB, lhs, rhs);
 }
 
 // add = mul ( "+" mul | "-" mul )*
