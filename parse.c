@@ -1,10 +1,13 @@
 #include "mmcc.h"
 
+Type *int_type = &(Type){TY_INT, 4};
+
 // Parser
 
 Type *pointer_to(Type *ty) {
     Type *type = calloc(1, sizeof(Type));
     type->kind = TY_PTR;
+    type->size = 8;
     type->ptr_to = ty;
     return type;
 }
@@ -33,16 +36,38 @@ void check_type(Node *node) {
         node->type = node->lvar->type;
         return;
     case ND_ADDR:
-        node->type = pointer_to(node->lhs->type);
+        if (node->lhs->type->kind == TY_ARR)
+            node->type = pointer_to(node->lhs->type->ptr_to);
+        else
+            node->type = pointer_to(node->lhs->type);
         return;
     case ND_DEREF:
-        node->type = node->lhs->lvar->type->ptr_to;
+        if (!node->lhs->type->ptr_to)
+            error("invalid pointer dereference");
+        node->type = node->lhs->type->ptr_to;
         return;
     case ND_FUNC:
     case ND_NUM:
-        node->type = &(Type){TY_INT};
+        node->type = int_type;
         return;
     }
+}
+
+Type *array_of(Type *ty, int n) {
+    Type *type = calloc(1, sizeof(Type));
+    type->kind = TY_ARR;
+    type->size = ty->size * n;
+    type->ptr_to = ty;
+    type->size_array = n;
+    return type;
+}
+
+Type *read_type_suffix(Type *ty) {
+    if (!consume("["))
+        return ty;
+    int num = expect_number();
+    expect("]");
+    return array_of(ty, num);
 }
 
 Node *new_node(Nodekind kind, Node *lhs, Node *rhs) {
@@ -95,8 +120,9 @@ Node *new_add(Node *lhs, Node *rhs) {
 
     if (lhs->type->kind == TY_INT && rhs->type->kind == TY_INT)
         return new_node(ND_ADD, lhs, rhs);
-    else if ((lhs->kind == ND_ADDR) || (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_PTR))
-        rhs = new_node(ND_MUL, rhs, new_node_num(8));
+    else if ((lhs->kind == ND_ADDR) || (lhs->type->kind == TY_ARR)
+             || (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_PTR))
+        rhs = new_node(ND_MUL, rhs, new_node_num(lhs->type->ptr_to->size));
     else if (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_INT)
         rhs = new_node(ND_MUL, rhs, new_node_num(4));
 
@@ -109,8 +135,9 @@ Node *new_sub(Node *lhs, Node *rhs) {
 
     if (lhs->type->kind == TY_INT && rhs->type->kind == TY_INT)
         return new_node(ND_SUB, lhs, rhs);
-    else if ((lhs->kind == ND_ADDR) || (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_PTR))
-        rhs = new_node(ND_MUL, rhs, new_node_num(8));
+    else if ((lhs->kind == ND_ADDR) || (lhs->type->kind == TY_ARR)
+             || (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_PTR))
+        rhs = new_node(ND_MUL, rhs, new_node_num(lhs->type->ptr_to->size));
     else if (lhs->type->kind == TY_PTR && lhs->type->ptr_to->kind == TY_INT)
         rhs = new_node(ND_MUL, rhs, new_node_num(4));
 
@@ -121,7 +148,7 @@ LVar *locals;
 
 LVar *find_lvar(Token *tok) {
     for (LVar *lvar = locals; lvar; lvar=lvar->next)
-        if (lvar->len == tok->len && !strncmp(tok->str, lvar->name, lvar->len))
+        if (strlen(lvar->name) == tok->len && !strncmp(tok->str, lvar->name, tok->len))
             return lvar;
     return NULL;
 }
@@ -132,6 +159,8 @@ void program();
 Function *function();
 LVar *funcparams();
 Node *stmt();
+Node *declaration();
+Type *basetype();
 Node *cond();
 Node *expr();
 Node *assign();
@@ -157,15 +186,16 @@ void program() {
     code = head.next;
 }
 
-// function = type ident "(" funcparams* ")" "{" stmt* "}"
+// function = basetype ident "(" funcparams* ")" "{" stmt* "}"
 Function *function() {
     Function *func = calloc(1, sizeof(Function));
-    Type *ty = consume_type();
+    Type *ty = basetype();
     char *funcname = expect_ident();
 
     expect("(");
 
     locals = calloc(1, sizeof(LVar));
+    locals->type = ty;
     locals->offset = 0;
 
     LVar *params = funcparams();
@@ -179,6 +209,7 @@ Function *function() {
     Node *cur = &head;
     while (!consume("}")) {
         cur->next = stmt();
+        check_type(cur->next);
         cur = cur->next;
     }
 
@@ -191,29 +222,27 @@ Function *function() {
     return func;
 }
 
-// funcparams = ( type ident ( "," type ident )* )?
+// funcparams = ( basetype ident ( "," basetype ident )* )?
 LVar *funcparams() {
     if (consume(")"))
         return NULL; // no parameters
 
-    Type *ty = consume_type();
-    Token *tok = consume_ident();
+    Type *ty = basetype();
+    char *name = expect_ident();
 
     LVar *params = calloc(1, sizeof(LVar));
     params->type = ty;
-    params->name = strndup(tok->str, tok->len);
-    params->len = tok->len;
-    params->offset = 8;
+    params->name = name;
+    params->offset = ty->size;
     LVar *cur = params;
 
     while (consume(",")) {
-        ty = consume_type();
-        tok = consume_ident();
+        ty = basetype();
+        name = expect_ident();
         cur->next = calloc(1, sizeof(LVar));
         cur->next->type = ty;
-        cur->next->name = strndup(tok->str, tok->len);
-        cur->next->len = tok->len;
-        cur->next->offset = cur->offset + 8;
+        cur->next->name = name;
+        cur->next->offset = cur->offset + ty->size;
         cur = cur->next;
     }
     expect(")");
@@ -221,39 +250,15 @@ LVar *funcparams() {
     return params;
 }
 
-// stmt = type ( "*" )* ident ( "=" expr )? ";"
-//        | "return" expr ";"
+// stmt = "return" expr ";"
 //        | "{" stmt* "}"
 //        | "if" "(" cond ")" stmt ( "else" stmt )?
 //        | "while" "(" cond ")" stmt
 //        | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//        | declaration ";"
 //        | expr ";"
 Node *stmt() {
     Node *node;
-
-    Type *ty = consume_type();
-    if (ty) {
-        node = calloc(1, sizeof(Node));
-        node->kind = ND_LV;
-
-        Token *tok = consume_ident();
-
-        LVar *lvar = calloc(1, sizeof(LVar));
-        lvar->type = ty;
-        lvar->next = locals;
-        lvar->name = tok->str;
-        lvar->len = tok->len;
-        lvar->offset = locals->offset + 8;
-        node->lvar = lvar;
-        locals = node->lvar;
-
-        if (consume("="))
-            node = new_node(ND_AS, node, expr());
-
-        expect(";");
-
-        return node;
-    }
 
     if (consume_tk(TK_RETURN)) {
         node = calloc(1, sizeof(Node));
@@ -272,6 +277,7 @@ Node *stmt() {
         node->kind = ND_BLOCK;
         while (!consume("}")) {
             cur->next = stmt();
+            check_type(cur->next);
             cur = cur->next;
         }
         node->blocks = head.next;
@@ -283,10 +289,13 @@ Node *stmt() {
         node->kind = ND_IF;
         expect("(");
         node->cond = cond();
+        check_type(node->cond);
         expect(")");
         node->then = stmt();
-        if (consume_tk(TK_ELSE))
+        if (consume_tk(TK_ELSE)) {
             node->els = stmt();
+            check_type(node->els);
+        }
         return node;
     }
 
@@ -295,8 +304,10 @@ Node *stmt() {
         node->kind = ND_WHILE;
         expect("(");
         node->cond = cond();
+        check_type(node->cond);
         expect(")");
         node->then = stmt();
+        check_type(node->then);
         return node;
     }
 
@@ -309,6 +320,7 @@ Node *stmt() {
             node->preop = NULL;
         } else {
             node->preop = expr();
+            check_type(node->preop);
             expect(";");
         }
 
@@ -316,6 +328,7 @@ Node *stmt() {
             node->cond = NULL;
         } else {
             node->cond = expr();
+            check_type(node->cond);
             expect(";");
         }
 
@@ -323,10 +336,19 @@ Node *stmt() {
             node->postop = NULL;
         } else {
             node->postop = expr();
+            check_type(node->postop);
             expect(")");
         }
 
         node->then = stmt();
+        check_type(node->then);
+        return node;
+    }
+
+    if (peek("int")) {
+        node = declaration();
+        check_type(node);
+        expect(";");
         return node;
     }
 
@@ -334,6 +356,40 @@ Node *stmt() {
     expect(";");
 
     return node;
+}
+
+// declaration = basetype ident (( "[" num "]" ) | ( "=" expr ))?
+Node *declaration() {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_LV;
+
+    Type *ty = basetype();
+    char *ident = expect_ident();
+    ty = read_type_suffix(ty);
+
+    LVar *lvar = calloc(1, sizeof(LVar));
+    lvar->type = ty;
+    lvar->next = locals;
+    lvar->name = ident;
+    lvar->offset = locals->offset + ty->size;
+    locals = lvar;
+
+    node->lvar = lvar;
+
+    if (consume("="))
+        node = new_node(ND_AS, node, expr());
+
+    return node;
+}
+
+// basetype = type ( "*" )*
+Type *basetype() {
+    expect_type();
+    Type *type = int_type;
+
+    while (consume("*"))
+        type = pointer_to(type);
+    return type;
 }
 
 // cond = expr

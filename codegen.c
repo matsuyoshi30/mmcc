@@ -3,7 +3,8 @@
 // Code generator
 
 static int labels = 1;
-static char *argRegs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+static char *argRegs4[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
+static char *argRegs8[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 void gen(Node *node);
 
@@ -21,9 +22,12 @@ void gen_lval(Node *node) {
     error("The left value of the assignment is not a variable.");
 }
 
-void load() {
+void load(Type *type) {
     printf("  pop rax\n");
-    printf("  mov rax, [rax]\n");
+    if (type->size == 4)
+        printf("  movsxd rax, dword ptr [rax]\n");
+    else
+        printf("  mov rax, [rax]\n");
     printf("  push rax\n");
     return;
 }
@@ -100,22 +104,28 @@ void gen(Node *node) {
         }
 
         for (int i=num_of_args-1; i>=0; i--)
-            printf("  pop %s\n", argRegs[i]);
+            printf("  pop %s\n", argRegs8[i]);
         printf("  call %s\n", node->funcname);
         printf("  push rax\n");
         return;
     }
     case ND_LV:
         gen_lval(node);
-        load();
-        return;
+        if (node->type->kind != TY_ARR)
+            load(node->type);
+          return;
     case ND_AS:
+        if (node->lhs->type->kind == TY_ARR)
+            error("not an left value\n");
         gen_lval(node->lhs);
         gen(node->rhs);
 
         printf("  pop rdi\n");
         printf("  pop rax\n");
-        printf("  mov [rax], rdi\n"); // store value from rdi into the address in rax
+        if (node->type->size == 4)
+            printf("  mov [rax], edi\n");
+        else
+            printf("  mov [rax], rdi\n"); // store value from rdi into the address in rax
         printf("  push rdi\n");
         return;
     case ND_ADDR:
@@ -123,7 +133,8 @@ void gen(Node *node) {
         return;
     case ND_DEREF:
         gen(node->lhs);
-        load();
+        if (node->type->kind != TY_ARR)
+            load(node->type);
         return;
     }
 
@@ -201,7 +212,7 @@ void codegen() {
 
         int stackSize = 0;
         for (LVar *lvar=func->locals; lvar; lvar=lvar->next) {
-            stackSize += 8;
+            stackSize += lvar->type->size;
             lvar->offset = stackSize;
         }
         stackSize = align(stackSize, 16);
@@ -213,7 +224,10 @@ void codegen() {
 
         int i = 0;
         for (LVar *param=func->params; param; param=param->next) {
-            printf("  mov [rbp-%d], %s\n", param->offset, argRegs[i++]);
+            if (param->type->size == 4)
+                printf("  mov [rbp-%d], %s\n", param->offset, argRegs4[i++]);
+            else
+                printf("  mov [rbp-%d], %s\n", param->offset, argRegs8[i++]);
         }
 
         for (Node *node=func->body; node; node=node->next) {

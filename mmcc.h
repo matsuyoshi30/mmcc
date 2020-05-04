@@ -42,21 +42,26 @@ extern Token *token;
 typedef enum {
     TY_INT,
     TY_PTR,
+    TY_ARR,
 } Typekind;
 
 typedef struct Type Type;
 
 struct Type {
     Typekind kind;
+    int size;
     struct Type *ptr_to;
+    size_t size_array;
 };
 
 bool consume(char *op);
+bool peek(char *op);
 bool consume_tk(Tokenkind tk);
 Token *consume_ident();
 Type *consume_type();
 void expect(char *op);
 int expect_number();
+bool expect_type();
 char *expect_ident();
 bool at_eof();
 
@@ -94,7 +99,6 @@ struct LVar {
     Type *type;
     LVar *next;
     char *name;
-    int len;
     int offset;
 };
 

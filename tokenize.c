@@ -12,6 +12,13 @@ bool consume(char *op) {
     return true;
 }
 
+// check the current token if it matches 'op'
+bool peek(char *op) {
+    if (token->len != strlen(op) || memcmp(token->str, op, token->len))
+        return false;
+    return true;
+}
+
 // consume the current token it it matches 'tk'
 bool consume_tk(Tokenkind tk) {
     if (token->kind != tk)
@@ -29,26 +36,6 @@ Token *consume_ident() {
     return tok;
 }
 
-// consume the current token if it is TYPE
-Type *consume_type() {
-    if (token->kind != TK_TYPE)
-        return NULL;
-    Type *ty = calloc(1, sizeof(Type));
-    if (strncmp(token->str, "int", 3) == 0)
-        ty->kind = TY_INT;
-    token = token->next;
-
-    // for TY_PTR
-    while (consume("*")) {
-        Type *ptr = calloc(1, sizeof(Type));
-        ptr->kind = TY_PTR;
-        ptr->ptr_to = ty;
-        ty = ptr;
-    }
-
-    return ty;
-}
-
 // check whether the current token matches 'op'
 void expect(char *op) {
     if (token->kind != TK_RESERVED || token->len != strlen(op) || memcmp(token->str, op, token->len))
@@ -63,6 +50,15 @@ int expect_number() {
     int val = token->val;
     token = token->next;
     return val;
+}
+
+// expect the current token if it is Type
+bool expect_type() {
+    if (token->kind != TK_TYPE)
+        return false;
+
+    token = token->next;
+    return true;
 }
 
 // check whether the current token is ident
@@ -97,7 +93,7 @@ bool is_alnum(char c) {
 }
 
 char *is_reserved(char *c) {
-    char *kw[] = {"return", "if", "else", "while", "for", "sizeof"};
+    char *kw[] = {"return", "if", "else", "while", "for", "sizeof", "int"};
     for (int i=0; i<sizeof(kw)/sizeof(*kw); i++) {
         int len = strlen(kw[i]);
         if (strncmp(c, kw[i], len) == 0 && !is_alnum(c[len]))
@@ -135,12 +131,6 @@ void tokenize() {
             continue;
         }
 
-        if (strncmp(p, "int", 3) == 0 && !is_alnum(p[3])) {
-            cur = new_token(TK_TYPE, cur, p, 3);
-            p+=3;
-            continue;
-        }
-
         char *reserved = is_reserved(p);
         if (reserved) {
             if (strcmp(reserved, "return") == 0)
@@ -155,6 +145,8 @@ void tokenize() {
                 cur = new_token(TK_FOR, cur, p, 3);
             else if (strcmp(reserved, "sizeof") == 0)
                 cur = new_token(TK_SIZEOF, cur, p, 6);
+            else if (strcmp(reserved, "int") == 0)
+                cur = new_token(TK_TYPE, cur, p, 3);
             else
                 cur = new_token(TK_RESERVED, cur, p, strlen(reserved));
 
@@ -162,7 +154,7 @@ void tokenize() {
             continue;
         }
 
-        if (strchr("+-*/(){}><=,;&*", *p)) {
+        if (strchr("+-*/(){}[]><=,;&*", *p)) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
         }
