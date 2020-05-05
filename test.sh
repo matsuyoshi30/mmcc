@@ -95,6 +95,7 @@ assert 4 'int main() { return sizeof(sizeof(1)); }'
 assert 4 'int main() { int x; return sizeof(x+3); }'
 assert 8 'int main() { int *y; return sizeof(y+3); }'
 assert 4 'int main() { int *y; return sizeof(*y); }'
+assert 20 'int main() { int x[5]; return sizeof(x); }'
 
 assert 3 'int main() { int x[2]; int *y=&x; *y=3; return *x; }'
 assert 3 'int main() { int x[3]; *x=3; *(x+1)=4; *(x+2)=5; return *x; }'

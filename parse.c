@@ -481,10 +481,7 @@ Node *unary() {
     if (consume_tk(TK_SIZEOF)) {
         Node *node = unary();
         check_type(node);
-        if (node->type->kind == TY_INT)
-            return new_node_num(4);
-        else if (node->type->kind == TY_PTR)
-            return new_node_num(8);
+        return new_node_num(node->type->size);
     }
 
     return primary();
