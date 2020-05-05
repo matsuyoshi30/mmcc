@@ -89,6 +89,7 @@ typedef enum {
     ND_FOR,
     ND_BLOCK, // {...}
     ND_FUNC,
+    ND_EXPR_STMT,
     ND_RET,
     ND_NUM,
 } Nodekind;

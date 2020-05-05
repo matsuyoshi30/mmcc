@@ -155,7 +155,7 @@ LVar *funcparams();
 Node *stmt();
 Node *declaration();
 Type *basetype();
-Node *cond();
+Node *expr_stmt();
 Node *expr();
 Node *assign();
 Node *equality();
@@ -247,11 +247,11 @@ LVar *funcparams() {
 
 // stmt = "return" expr ";"
 //        | "{" stmt* "}"
-//        | "if" "(" cond ")" stmt ( "else" stmt )?
-//        | "while" "(" cond ")" stmt
-//        | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//        | "if" "(" expr ")" stmt ( "else" stmt )?
+//        | "while" "(" expr ")" stmt
+//        | "for" "(" expr_stmt? ";" expr? ";" expr_stmt? ")" stmt
 //        | declaration ";"
-//        | expr ";"
+//        | expr_stmt ";"
 Node *stmt() {
     Node *node;
 
@@ -283,7 +283,7 @@ Node *stmt() {
         node = calloc(1, sizeof(Node));
         node->kind = ND_IF;
         expect("(");
-        node->cond = cond();
+        node->cond = expr();
         check_type(node->cond);
         expect(")");
         node->then = stmt();
@@ -298,7 +298,7 @@ Node *stmt() {
         node = calloc(1, sizeof(Node));
         node->kind = ND_WHILE;
         expect("(");
-        node->cond = cond();
+        node->cond = expr();
         check_type(node->cond);
         expect(")");
         node->then = stmt();
@@ -314,7 +314,7 @@ Node *stmt() {
         if (consume(";")) {
             node->preop = NULL;
         } else {
-            node->preop = expr();
+            node->preop = expr_stmt();
             check_type(node->preop);
             expect(";");
         }
@@ -330,7 +330,7 @@ Node *stmt() {
         if (consume(")")) {
             node->postop = NULL;
         } else {
-            node->postop = expr();
+            node->postop = expr_stmt();
             check_type(node->postop);
             expect(")");
         }
@@ -347,7 +347,7 @@ Node *stmt() {
         return node;
     }
 
-    node = expr();
+    node = expr_stmt();
     expect(";");
 
     return node;
@@ -371,8 +371,12 @@ Node *declaration() {
 
     node->lvar = lvar;
 
-    if (consume("="))
-        node = new_node(ND_AS, node, expr());
+    if (consume("=")) {
+        Node *n = calloc(1, sizeof(Node));
+        n->kind = ND_EXPR_STMT;
+        n->lhs = new_node(ND_AS, node, expr());
+        return n;
+    }
 
     return node;
 }
@@ -387,9 +391,12 @@ Type *basetype() {
     return type;
 }
 
-// cond = expr
-Node *cond() {
-    return expr();
+// expr_stmt = expr
+Node *expr_stmt() {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_EXPR_STMT;
+    node->lhs = expr();
+    return node;
 }
 
 // expr = assign

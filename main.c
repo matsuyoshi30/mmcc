@@ -30,14 +30,9 @@ int main(int argc, char **argv) {
 
     user_input = argv[1];
 
-    // tokenize input
-    tokenize();
-
-    // parse tokens into AST
-    program();
-
-    // emit code from AST
-    codegen();
+    tokenize(); // tokenize input
+    program();  // parse tokens into AST
+    codegen();  // emit code from AST
 
     return 0;
 }
