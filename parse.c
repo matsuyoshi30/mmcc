@@ -165,6 +165,7 @@ Node *mul();
 Node *unary();
 Node *primary();
 Node *funcargs();
+Node *read_array();
 
 // program = function*
 void program() {
@@ -489,7 +490,7 @@ Node *unary() {
     return primary();
 }
 
-// primary = '(' expr ')' | ident ( "(" ( funcargs )* ")" )? | num
+// primary = '(' expr ')' | ident ( ("(" ( funcargs )* ")") | ("[" expr "]") )? | num
 Node *primary() {
     if (consume("(")) {
         Node *node = expr();
@@ -501,6 +502,8 @@ Node *primary() {
     if (tok) {
         if (consume("("))
             return new_node_func(strndup(tok->str, tok->len), funcargs());
+        else if (consume("["))
+            return new_node_deref(read_array(find_lvar(tok), expr()));
         else
             return new_node_lvar(find_lvar(tok));
     }
@@ -522,4 +525,12 @@ Node *funcargs() {
     expect(")");
 
     return head;
+}
+
+Node *read_array(LVar *lvar, Node *idx) {
+    Node *var = calloc(1, sizeof(Node));
+    var->kind = ND_LV;
+    var->lvar = lvar;
+    expect("]");
+    return new_add(var, idx);
 }
