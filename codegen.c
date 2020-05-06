@@ -2,6 +2,7 @@
 
 // Code generator
 
+static char *funcname;
 static int labels = 1;
 static char *argRegs4[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 static char *argRegs8[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
@@ -140,9 +141,7 @@ void gen_stmt(Node *node) {
     case ND_RET:
         gen_expr(node->lhs);
         printf("  pop rax\n");
-        printf("  mov rsp, rbp\n");
-        printf("  pop rbp\n");
-        printf("  ret\n");
+        printf("  jmp .Lreturn.%s\n", funcname);
         return;
     case ND_BLOCK:
         for (Node *block=node->blocks; block; block=block->next)
@@ -215,8 +214,9 @@ void codegen() {
     printf(".intel_syntax noprefix\n");
 
     for (Function *func=code; func; func=func->next) {
+        funcname = func->name;
         printf(".global %s\n", func->name);
-        printf("%s:\n", func->name);
+        printf("%s:\n", funcname);
 
         int stackSize = 0;
         for (LVar *lvar=func->locals; lvar; lvar=lvar->next) {
@@ -242,6 +242,7 @@ void codegen() {
             gen_stmt(node);
 
         // epilogue
+        printf(".Lreturn.%s:\n", funcname);
         printf("  mov rsp, rbp\n");
         printf("  pop rbp\n");
         printf("  ret\n");
