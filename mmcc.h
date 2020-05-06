@@ -77,6 +77,7 @@ typedef enum {
     ND_OL, // <=
     ND_AS, // =
     ND_LV, // local variable
+    ND_GV, // global variable
     ND_ADDR,  // &
     ND_DEREF, // *
     ND_IF,
@@ -89,13 +90,15 @@ typedef enum {
     ND_NUM,
 } Nodekind;
 
-typedef struct LVar LVar;
+typedef struct Var Var;
 
-struct LVar {
+struct Var {
     Type *type;
-    LVar *next;
+    Var *next;
     char *name;
     int offset;
+
+    bool is_local;
 };
 
 typedef struct Node Node;
@@ -109,7 +112,7 @@ struct Node {
     Node *rhs;
 
     int val;    // for ND_NUM
-    LVar *lvar;
+    Var *var;
 
     Node *cond;
     Node *then;
@@ -129,12 +132,13 @@ struct Function {
     Function *next;
     Type *type;
     char *name;
-    LVar *params;
-    LVar *locals;
+    Var *params;
+    Var *locals;
     Node *body;
 };
 
-extern LVar *locals;
+extern Var *locals;
+extern Var *globals;
 extern Function *code;
 
 void program();

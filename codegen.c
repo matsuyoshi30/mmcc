@@ -11,7 +11,10 @@ void gen_expr(Node *node);
 
 void gen_lval(Node *node) {
     if (node->kind == ND_LV) {
-        printf("  lea rax, [rbp-%d] # %s\n", node->lvar->offset, node->lvar->name);
+        if (node->var->is_local)
+            printf("  lea rax, [rbp-%d] # %s\n", node->var->offset, node->var->name);
+        else
+            printf("  lea rax, %s[rip]\n", node->var->name);
         printf("  push rax\n");
         return;
     } else if (node->kind == ND_DEREF) {
@@ -214,15 +217,22 @@ int align(int n, int align) {
 void codegen() {
     printf(".intel_syntax noprefix\n");
 
+    printf(".data\n");
+    for (Var *global=globals; global->next; global=global->next) {
+        printf("%s:\n", global->name);
+        printf("  .zero %d\n", global->type->size);
+    }
+
+    printf(".text\n");
     for (Function *func=code; func; func=func->next) {
         funcname = func->name;
         printf(".global %s\n", func->name);
         printf("%s:\n", funcname);
 
         int stackSize = 0;
-        for (LVar *lvar=func->locals; lvar; lvar=lvar->next) {
-            stackSize += lvar->type->size;
-            lvar->offset = stackSize;
+        for (Var *var=func->locals; var; var=var->next) {
+            stackSize += var->type->size;
+            var->offset = stackSize;
         }
         stackSize = align(stackSize, 16);
 
@@ -232,7 +242,7 @@ void codegen() {
         printf("  sub rsp, %d\n", stackSize);
 
         int i = 0;
-        for (LVar *param=func->params; param; param=param->next) {
+        for (Var *param=func->params; param; param=param->next) {
             if (param->type->size == 4)
                 printf("  mov [rbp-%d], %s # %s\n", param->offset, argRegs4[i++], param->name);
             else

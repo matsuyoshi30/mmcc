@@ -1,2 +1,2 @@
 #!/bin/bash
-exec docker run --rm -it -v $PWD:/mmcc -w /mmcc compilerbook
+exec docker run --rm -it -v $PWD:/mmcc -w /mmcc --tmpfs=/tmp/tmpfs:rw,size=500m,mode=1777 compilerbook

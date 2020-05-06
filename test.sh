@@ -1,5 +1,5 @@
 #!/bin/bash
-cat <<EOF | cc -x c -c -o tmp2.o -
+cat <<EOF | cc -x c -c -o /tmp/tmpfs/tmp2.o -
 int testFunc1() { return 5; }
 int testFunc2(int x, int y) { return x+y; }
 int testFunc3(int a, int b, int c, int d, int e, int f) { return a+b+c+d+e+f;}
@@ -12,7 +12,8 @@ assert() {
     input="$2"
 
     ./mmcc "$input" > tmp.s
-    cc -fPIC -o tmp tmp.s tmp2.o
+    cc -static -o /tmp/tmpfs/tmp tmp.s /tmp/tmpfs/tmp2.o
+    cp /tmp/tmpfs/tmp tmp
     ./tmp
     actual="$?"
 
@@ -111,5 +112,15 @@ assert 3 'int main() { int x[2][3]; int *y=x; y[3]=3; return x[1][0]; }'
 assert 4 'int main() { int x[2][3]; x[1][1]=4; return x[1][1]; }'
 assert 5 'int main() { int x[2][3]; int *y=x; y[5]=5; return x[1][2]; }'
 assert 6 'int main() { int x[2][3]; int *y=x; y[6]=6; return x[2][0]; }'
+
+assert 1 'int a; int main() { a=1; return a; }'
+assert 2 'int a[3]; int main() { a[0]=2; a[1]=3; a[2]=4; return a[0]; }'
+assert 3 'int a[3]; int main() { a[0]=2; a[1]=3; a[2]=4; return a[1]; }'
+assert 4 'int a[3]; int main() { a[0]=2; a[1]=3; a[2]=4; return a[2]; }'
+assert 5 'int x; int y; int main() { x=2; y=3; return x+y; }'
+assert 6 'int x; int main() { x=2; return ret(); } int ret() { return x*3; }'
+
+assert 4 'int x; int main() { return sizeof(x); }'
+assert 8 'int *y; int main() { return sizeof(y); }'
 
 echo OK

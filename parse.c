@@ -42,7 +42,8 @@ void check_type(Node *node) {
         node->type = node->lhs->type;
         return;
     case ND_LV:
-        node->type = node->lvar->type;
+    case ND_GV:
+        node->type = node->var->type;
         return;
     case ND_ADDR:
         if (node->lhs->type->kind == TY_ARR)
@@ -92,10 +93,10 @@ Node *new_node_func(char *funcname, Node *args) {
     return node;
 }
 
-Node *new_node_lvar(LVar *lvar) {
+Node *new_node_var(Var *var) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LV;
-    node->lvar = lvar;
+    node->var = var;
     return node;
 }
 
@@ -144,20 +145,49 @@ Node *new_sub(Node *lhs, Node *rhs) {
     return new_node(ND_SUB, lhs, rhs);
 }
 
-LVar *locals;
+Var *locals;
+Var *globals;
 
-LVar *find_lvar(Token *tok) {
-    for (LVar *lvar = locals; lvar; lvar=lvar->next)
+Var *new_lvar(Type *type, char *name) {
+    Var *var = calloc(1, sizeof(Var));
+    var->type = type;
+    var->name = name;
+    var->is_local = true;
+    var->next = locals;
+    locals = var;
+
+    return var;
+}
+
+Var *new_gvar(Type *type, char *name) {
+    Var *var = calloc(1, sizeof(Var));
+    var->type = type;
+    var->name = name;
+    var->is_local = false;
+    var->next = globals;
+    globals = var;
+
+    return var;
+}
+
+Var *find_var(Token *tok) {
+    for (Var *lvar=locals; lvar; lvar=lvar->next)
         if (strlen(lvar->name) == tok->len && !strncmp(tok->str, lvar->name, tok->len))
             return lvar;
+
+    for (Var *gvar=globals; gvar; gvar=gvar->next)
+        if (strlen(gvar->name) == tok->len && !strncmp(tok->str, gvar->name, tok->len))
+            return gvar;
+
     return NULL;
 }
 
 Function *code;
 
 void program();
-Function *function();
-LVar *funcparams();
+Function *function(Type *type, char *funcname);
+Var *funcparams();
+Var *gvar(Type *type, char *varname);
 Node *stmt();
 Node *declaration();
 Type *basetype();
@@ -175,35 +205,39 @@ Node *primary();
 Node *funcargs();
 Node *read_array();
 
-// program = function*
+// program = ( basetype ident ( function | gvar ) )*
 void program() {
     Function head;
     head.next = NULL;
     Function *cur = &head;
 
+    globals = calloc(1, sizeof(Node));
+
     while (!at_eof()) {
-        cur->next = function();
-        cur = cur->next;
+        Type *ty = basetype();
+        char *name = expect_ident();
+
+        if (peek("(")) {
+            cur->next = function(ty, name);
+            cur = cur->next;
+        } else {
+            ty = type_suffix(ty);
+            new_gvar(ty, name);
+            expect(";");
+        }
     }
 
     code = head.next;
 }
 
-// function = basetype ident "(" funcparams* ")" "{" stmt* "}"
-Function *function() {
+// function = "(" funcparams* ")" "{" stmt* "}"
+Function *function(Type *type, char *funcname) {
     Function *func = calloc(1, sizeof(Function));
-    Type *ty = basetype();
-    char *funcname = expect_ident();
 
     expect("(");
 
-    locals = calloc(1, sizeof(LVar));
-    locals->type = ty;
-    locals->offset = 0;
-
-    LVar *params = funcparams();
-    if (params)
-        locals = params;
+    locals = funcparams();
+    func->params = locals;
 
     expect("{");
 
@@ -216,9 +250,8 @@ Function *function() {
         cur = cur->next;
     }
 
-    func->type = ty;
+    func->type = type;
     func->name = funcname;
-    func->params = params;
     func->locals = locals;
     func->body = head.next;
 
@@ -226,26 +259,25 @@ Function *function() {
 }
 
 // funcparams = ( basetype ident ( "," basetype ident )* )?
-LVar *funcparams() {
+Var *funcparams() {
     if (consume(")"))
         return NULL; // no parameters
 
     Type *ty = basetype();
     char *name = expect_ident();
 
-    LVar *params = calloc(1, sizeof(LVar));
-    params->type = ty;
-    params->name = name;
+    Var *params = new_lvar(ty, name);
     params->offset = ty->size;
-    LVar *cur = params;
+    Var *cur = params;
 
     while (consume(",")) {
         ty = basetype();
         name = expect_ident();
-        cur->next = calloc(1, sizeof(LVar));
+        cur->next = calloc(1, sizeof(Var));
         cur->next->type = ty;
         cur->next->name = name;
         cur->next->offset = cur->offset + ty->size;
+        cur->next->is_local = true;
         cur = cur->next;
     }
     expect(")");
@@ -373,14 +405,10 @@ Node *declaration() {
     char *ident = expect_ident();
     ty = type_suffix(ty);
 
-    LVar *lvar = calloc(1, sizeof(LVar));
-    lvar->type = ty;
-    lvar->next = locals;
-    lvar->name = ident;
-    lvar->offset = locals->offset + ty->size;
-    locals = lvar;
+    Var *var = new_lvar(ty, ident);;
+    var->offset = locals->offset + ty->size;
 
-    node->lvar = lvar;
+    node->var = var;
 
     if (consume("=")) {
         Node *n = calloc(1, sizeof(Node));
@@ -541,7 +569,8 @@ Node *primary() {
         if (consume("("))
             return new_node_func(strndup(tok->str, tok->len), funcargs());
         else
-            return new_node_lvar(find_lvar(tok));
+            if (find_var(tok))
+                return new_node_var(find_var(tok));
     }
 
     return new_node_num(expect_number());
