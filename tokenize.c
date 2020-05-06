@@ -19,14 +19,6 @@ bool peek(char *op) {
     return true;
 }
 
-// consume the current token it it matches 'tk'
-bool consume_tk(Tokenkind tk) {
-    if (token->kind != tk)
-        return false;
-    token = token->next;
-    return true;
-}
-
 // consume the current token if it is identifier
 Token *consume_ident() {
     if (token->kind != TK_IDENT)
@@ -133,19 +125,7 @@ void tokenize() {
 
         char *reserved = is_reserved(p);
         if (reserved) {
-            if (strcmp(reserved, "return") == 0)
-                cur = new_token(TK_RETURN, cur, p, 6);
-            else if (strcmp(reserved, "if") == 0)
-                cur = new_token(TK_IF, cur, p, 2);
-            else if (strcmp(reserved, "else") == 0)
-                cur = new_token(TK_ELSE, cur, p, 4);
-            else if (strcmp(reserved, "while") == 0)
-                cur = new_token(TK_WHILE, cur, p, 5);
-            else if (strcmp(reserved, "for") == 0)
-                cur = new_token(TK_FOR, cur, p, 3);
-            else if (strcmp(reserved, "sizeof") == 0)
-                cur = new_token(TK_SIZEOF, cur, p, 6);
-            else if (strcmp(reserved, "int") == 0)
+            if (strcmp(reserved, "int") == 0)
                 cur = new_token(TK_TYPE, cur, p, 3);
             else
                 cur = new_token(TK_RESERVED, cur, p, strlen(reserved));

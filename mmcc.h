@@ -16,14 +16,9 @@ void error_at(char *loc, char *fmt, ...);
 typedef enum {
     TK_RESERVED,
     TK_IDENT,
-    TK_NUM,
-    TK_IF,
-    TK_ELSE,
-    TK_WHILE,
-    TK_FOR,
     TK_TYPE,
     TK_SIZEOF,
-    TK_RETURN,
+    TK_NUM,
     TK_EOF,
 } Tokenkind;
 

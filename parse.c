@@ -12,6 +12,15 @@ Type *pointer_to(Type *ty) {
     return type;
 }
 
+Type *array_of(Type *ty, int n) {
+    Type *type = calloc(1, sizeof(Type));
+    type->kind = TY_ARR;
+    type->size = ty->size * n;
+    type->ptr_to = ty;
+    type->size_array = n;
+    return type;
+}
+
 void check_type(Node *node) {
     if (!node || node->type)
         return;
@@ -51,15 +60,6 @@ void check_type(Node *node) {
         node->type = int_type;
         return;
     }
-}
-
-Type *array_of(Type *ty, int n) {
-    Type *type = calloc(1, sizeof(Type));
-    type->kind = TY_ARR;
-    type->size = ty->size * n;
-    type->ptr_to = ty;
-    type->size_array = n;
-    return type;
 }
 
 Type *read_type_suffix(Type *ty) {
@@ -118,10 +118,20 @@ Node *new_add(Node *lhs, Node *rhs) {
     check_type(lhs);
     check_type(rhs);
 
+    // num + num
     if (lhs->type->kind == TY_INT && rhs->type->kind == TY_INT)
         return new_node(ND_ADD, lhs, rhs);
-    else if ((lhs->kind == ND_ADDR) || (lhs->type->kind == TY_ARR) || (lhs->type->kind == TY_PTR))
-        rhs = new_node(ND_MUL, rhs, new_node_num(lhs->type->ptr_to->size));
+    // ptr + ptr
+    if (lhs->type->ptr_to && rhs->type->ptr_to)
+        error("invalid operands");
+    // num + ptr -> ptr + num
+    if (rhs->type->ptr_to) {
+        Node *temp = lhs;
+        lhs = rhs;
+        rhs = temp;
+    }
+    // num + ptr
+    rhs = new_node(ND_MUL, rhs, new_node_num(lhs->type->ptr_to->size));
 
     return new_node(ND_ADD, lhs, rhs);
 }
@@ -130,10 +140,14 @@ Node *new_sub(Node *lhs, Node *rhs) {
     check_type(lhs);
     check_type(rhs);
 
+    // num + num
     if (lhs->type->kind == TY_INT && rhs->type->kind == TY_INT)
         return new_node(ND_SUB, lhs, rhs);
-    else if ((lhs->kind == ND_ADDR) || (lhs->type->kind == TY_ARR) || (lhs->type->kind == TY_PTR))
-        rhs = new_node(ND_MUL, rhs, new_node_num(lhs->type->ptr_to->size));
+    // ptr + ptr
+    if (lhs->type->ptr_to && rhs->type->ptr_to)
+        error("invalid operands");
+    // ptr + num
+    rhs = new_node(ND_MUL, rhs, new_node_num(lhs->type->ptr_to->size));
 
     return new_node(ND_SUB, lhs, rhs);
 }
@@ -255,7 +269,7 @@ LVar *funcparams() {
 Node *stmt() {
     Node *node;
 
-    if (consume_tk(TK_RETURN)) {
+    if (consume("return")) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_RET;
         node->lhs = expr();
@@ -279,7 +293,7 @@ Node *stmt() {
         return node;
     }
 
-    if (consume_tk(TK_IF)) {
+    if (consume("if")) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_IF;
         expect("(");
@@ -287,14 +301,14 @@ Node *stmt() {
         check_type(node->cond);
         expect(")");
         node->then = stmt();
-        if (consume_tk(TK_ELSE)) {
+        if (consume("else")) {
             node->els = stmt();
             check_type(node->els);
         }
         return node;
     }
 
-    if (consume_tk(TK_WHILE)) {
+    if (consume("while")) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_WHILE;
         expect("(");
@@ -306,7 +320,7 @@ Node *stmt() {
         return node;
     }
 
-    if (consume_tk(TK_FOR)) {
+    if (consume("for")) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_FOR;
         expect("(");
@@ -314,7 +328,10 @@ Node *stmt() {
         if (consume(";")) {
             node->preop = NULL;
         } else {
-            node->preop = expr_stmt();
+            if (peek("int"))
+                node->preop = declaration();
+            else
+                node->preop = expr_stmt();
             check_type(node->preop);
             expect(";");
         }
@@ -381,7 +398,7 @@ Node *declaration() {
     return node;
 }
 
-// basetype = type ( "*" )*
+// basetype = type "*"*
 Type *basetype() {
     expect_type();
     Type *type = int_type;
@@ -485,7 +502,7 @@ Node *unary() {
     if (consume("*"))
         return new_node_deref(unary());
 
-    if (consume_tk(TK_SIZEOF)) {
+    if (consume("sizeof")) {
         Node *node = unary();
         check_type(node);
         return new_node_num(node->type->size);
@@ -494,7 +511,7 @@ Node *unary() {
     return primary();
 }
 
-// primary = '(' expr ')' | ident ( ("(" ( funcargs )* ")") | ("[" expr "]") )? | num
+// primary = '(' expr ')' | ident ( ("(" funcargs* ) | ("[" expr ) )? | num
 Node *primary() {
     if (consume("(")) {
         Node *node = expr();
@@ -515,7 +532,7 @@ Node *primary() {
     return new_node_num(expect_number());
 }
 
-// funcargs = ( add ( "," add )* )?
+// funcargs = ( add ( "," add )* )? ")"
 Node *funcargs() {
     if (consume(")"))
         return NULL; // no argument
@@ -531,6 +548,7 @@ Node *funcargs() {
     return head;
 }
 
+// read_array = lvar idx "]"
 Node *read_array(LVar *lvar, Node *idx) {
     Node *var = calloc(1, sizeof(Node));
     var->kind = ND_LV;
