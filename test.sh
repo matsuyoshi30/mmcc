@@ -123,4 +123,10 @@ assert 6 'int x; int main() { x=2; return ret(); } int ret() { return x*3; }'
 assert 4 'int x; int main() { return sizeof(x); }'
 assert 8 'int *y; int main() { return sizeof(y); }'
 
+assert 3 'int main() { char x[3]; x[0]=-1; x[1]=2; int y=4; return x[0]+y; }'
+assert 2 'int main() { char x=1; char y=2; return y; }'
+assert 1 'int main() { char x; return sizeof(x); }'
+assert 10 'int main() { char x[10]; return sizeof(x); }'
+assert 2 'int main() { return sub_char(7,1,1,1,1,1); } int sub_char(char a, char b, char c, char d, char e, char f) { return a-b-c-d-e-f; }'
+
 echo OK

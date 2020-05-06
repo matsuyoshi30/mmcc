@@ -35,6 +35,7 @@ struct Token {
 extern Token *token;
 
 typedef enum {
+    TY_CHAR,
     TY_INT,
     TY_PTR,
     TY_ARR,
@@ -56,7 +57,7 @@ Token *consume_ident();
 Type *consume_type();
 void expect(char *op);
 int expect_number();
-bool expect_type();
+char *expect_type();
 char *expect_ident();
 bool at_eof();
 

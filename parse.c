@@ -1,8 +1,13 @@
 #include "mmcc.h"
 
+Type *char_type = &(Type){TY_CHAR, 1};
 Type *int_type = &(Type){TY_INT, 4};
 
 // Parser
+
+bool is_integer(Type *type) {
+    return type->kind == TY_INT || type->kind == TY_CHAR;
+}
 
 Type *pointer_to(Type *ty) {
     Type *type = calloc(1, sizeof(Type));
@@ -112,7 +117,7 @@ Node *new_add(Node *lhs, Node *rhs) {
     check_type(rhs);
 
     // num + num
-    if (lhs->type->kind == TY_INT && rhs->type->kind == TY_INT)
+    if (is_integer(lhs->type) && is_integer(rhs->type))
         return new_node(ND_ADD, lhs, rhs);
     // ptr + ptr
     if (lhs->type->ptr_to && rhs->type->ptr_to)
@@ -134,7 +139,7 @@ Node *new_sub(Node *lhs, Node *rhs) {
     check_type(rhs);
 
     // num + num
-    if (lhs->type->kind == TY_INT && rhs->type->kind == TY_INT)
+    if (is_integer(lhs->type) && is_integer(rhs->type))
         return new_node(ND_SUB, lhs, rhs);
     // ptr + ptr
     if (lhs->type->ptr_to && rhs->type->ptr_to)
@@ -354,7 +359,7 @@ Node *stmt() {
         if (consume(";")) {
             node->preop = NULL;
         } else {
-            if (peek("int"))
+            if (peek("int") || peek("char"))
                 node->preop = declaration();
             else
                 node->preop = expr_stmt();
@@ -383,7 +388,7 @@ Node *stmt() {
         return node;
     }
 
-    if (peek("int")) {
+    if (peek("int") || peek("char")) {
         node = declaration();
         check_type(node);
         expect(";");
@@ -422,8 +427,10 @@ Node *declaration() {
 
 // basetype = type "*"*
 Type *basetype() {
-    expect_type();
+    char *tw = expect_type();
     Type *type = int_type;
+    if (strncmp(tw, "char", 4)==0)
+        type = char_type;
 
     while (consume("*"))
         type = pointer_to(type);

@@ -44,13 +44,13 @@ int expect_number() {
     return val;
 }
 
-// expect the current token if it is Type
-bool expect_type() {
+// expect the current token if it is type word
+char *expect_type() {
     if (token->kind != TK_TYPE)
-        return false;
-
+        error_at(token->str, "expected type word but got '%s'\n", token->str);
+    char *typeword = strndup(token->str, token->len);
     token = token->next;
-    return true;
+    return typeword;
 }
 
 // check whether the current token is ident
@@ -85,7 +85,7 @@ bool is_alnum(char c) {
 }
 
 char *is_reserved(char *c) {
-    char *kw[] = {"return", "if", "else", "while", "for", "sizeof", "int"};
+    char *kw[] = {"return", "if", "else", "while", "for", "sizeof"};
     for (int i=0; i<sizeof(kw)/sizeof(*kw); i++) {
         int len = strlen(kw[i]);
         if (strncmp(c, kw[i], len) == 0 && !is_alnum(c[len]))
@@ -97,6 +97,17 @@ char *is_reserved(char *c) {
         int len = strlen(compOp[i]);
         if (strncmp(c, compOp[i], len) == 0)
             return compOp[i];
+    }
+
+    return NULL;
+}
+
+char *is_type(char *c) {
+    char *tw[] = {"int", "char"};
+    for (int i=0; i<sizeof(tw)/sizeof(*tw); i++) {
+        int len = strlen(tw[i]);
+        if (strncmp(c, tw[i], len) == 0 && !is_alnum(c[len]))
+            return tw[i];
     }
 
     return NULL;
@@ -125,12 +136,15 @@ void tokenize() {
 
         char *reserved = is_reserved(p);
         if (reserved) {
-            if (strcmp(reserved, "int") == 0)
-                cur = new_token(TK_TYPE, cur, p, 3);
-            else
-                cur = new_token(TK_RESERVED, cur, p, strlen(reserved));
-
+            cur = new_token(TK_RESERVED, cur, p, strlen(reserved));
             p += strlen(reserved);
+            continue;
+        }
+
+        char *typeword = is_type(p);
+        if (typeword) {
+            cur = new_token(TK_TYPE, cur, p, strlen(typeword));
+            p += strlen(typeword);
             continue;
         }
 
