@@ -10,6 +10,9 @@ $(OBJS): mmcc.h
 test: mmcc
 	./test.sh
 
+debug: mmcc
+	cp .gdbinit ~/.gdbinit
+
 clean:
 	rm -f mmcc *.o *~ tmp*
 
