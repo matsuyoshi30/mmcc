@@ -2,6 +2,11 @@ CFLAGS=-std=c11 -g -static
 SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
 
+all: mmcc /tmp/tmpfs
+
+/tmp/tmpfs:
+	mkdir -p /tmp/tmpfs
+
 mmcc: $(OBJS)
 	$(CC) -o mmcc $(OBJS) $(LDFLAGS)
 
