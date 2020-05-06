@@ -183,11 +183,12 @@ void gen_stmt(Node *node) {
         if (node->preop)
             gen_stmt(node->preop);
         printf(".Lbegin%03d:\n", seq);
-        if (node->cond)
+        if (node->cond) {
             gen_expr(node->cond);
-        printf("  pop rax\n");
-        printf("  cmp rax, 0\n");
-        printf("  je .Lend%03d\n", seq);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  je .Lend%03d\n", seq);
+        }
         gen_stmt(node->then);
         if (node->postop)
             gen_stmt(node->postop);
