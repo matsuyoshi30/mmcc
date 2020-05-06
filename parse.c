@@ -47,7 +47,6 @@ void check_type(Node *node) {
         node->type = node->lhs->type;
         return;
     case ND_LV:
-    case ND_GV:
         node->type = node->var->type;
         return;
     case ND_ADDR:
@@ -192,7 +191,6 @@ Function *code;
 void program();
 Function *function(Type *type, char *funcname);
 Var *funcparams();
-Var *gvar(Type *type, char *varname);
 Node *stmt();
 Node *declaration();
 Type *basetype();

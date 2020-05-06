@@ -17,7 +17,6 @@ typedef enum {
     TK_RESERVED,
     TK_IDENT,
     TK_TYPE,
-    TK_SIZEOF,
     TK_NUM,
     TK_EOF,
 } Tokenkind;
@@ -52,7 +51,6 @@ struct Type {
 
 bool consume(char *op);
 bool peek(char *op);
-bool consume_tk(Tokenkind tk);
 Token *consume_ident();
 Type *consume_type();
 void expect(char *op);
@@ -78,7 +76,6 @@ typedef enum {
     ND_OL, // <=
     ND_AS, // =
     ND_LV, // local variable
-    ND_GV, // global variable
     ND_ADDR,  // &
     ND_DEREF, // *
     ND_IF,
