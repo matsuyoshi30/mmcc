@@ -62,14 +62,6 @@ void check_type(Node *node) {
     }
 }
 
-Type *read_type_suffix(Type *ty) {
-    if (!consume("["))
-        return ty;
-    int num = expect_number();
-    expect("]");
-    return array_of(ty, num);
-}
-
 Node *new_node(Nodekind kind, Node *lhs, Node *rhs) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = kind;
@@ -169,6 +161,7 @@ LVar *funcparams();
 Node *stmt();
 Node *declaration();
 Type *basetype();
+Type *type_suffix(Type *ty);
 Node *expr_stmt();
 Node *expr();
 Node *assign();
@@ -177,6 +170,7 @@ Node *relational();
 Node *add();
 Node *mul();
 Node *unary();
+Node *postfix();
 Node *primary();
 Node *funcargs();
 Node *read_array();
@@ -377,7 +371,7 @@ Node *declaration() {
 
     Type *ty = basetype();
     char *ident = expect_ident();
-    ty = read_type_suffix(ty);
+    ty = type_suffix(ty);
 
     LVar *lvar = calloc(1, sizeof(LVar));
     lvar->type = ty;
@@ -406,6 +400,16 @@ Type *basetype() {
     while (consume("*"))
         type = pointer_to(type);
     return type;
+}
+
+// type_suffix = ( "[" num "]" ( type_suffix )? )?
+Type *type_suffix(Type *ty) {
+    if (!consume("["))
+        return ty;
+    int num = expect_number();
+    expect("]");
+    ty = type_suffix(ty);
+    return array_of(ty, num);
 }
 
 // expr_stmt = expr
@@ -491,7 +495,7 @@ Node *mul() {
     }
 }
 
-// unary = ( '+' | '-' )? primary | '&' unary | '*' unary | "sizeof" unary
+// unary = ( '+' | '-' )? primary | ( '&' | '*' )? unary | "sizeof" unary | postfix
 Node *unary() {
     if (consume("+"))
         return unary();
@@ -508,10 +512,23 @@ Node *unary() {
         return new_node_num(node->type->size);
     }
 
-    return primary();
+    return postfix();
 }
 
-// primary = '(' expr ')' | ident ( ("(" funcargs* ) | ("[" expr ) )? | num
+// postfix = primary ( "[" expr "]" )*
+Node *postfix() {
+    Node *node = primary();
+
+    while (consume("[")) {
+        Node *idx = expr();
+        expect("]");
+        node = new_node_deref(new_add(node, idx));
+    }
+
+    return node;
+}
+
+// primary = '(' expr ')' | ident ( "(" funcargs* )? | num
 Node *primary() {
     if (consume("(")) {
         Node *node = expr();
@@ -523,8 +540,6 @@ Node *primary() {
     if (tok) {
         if (consume("("))
             return new_node_func(strndup(tok->str, tok->len), funcargs());
-        else if (consume("["))
-            return new_node_deref(read_array(find_lvar(tok), expr()));
         else
             return new_node_lvar(find_lvar(tok));
     }
@@ -546,13 +561,4 @@ Node *funcargs() {
     expect(")");
 
     return head;
-}
-
-// read_array = lvar idx "]"
-Node *read_array(LVar *lvar, Node *idx) {
-    Node *var = calloc(1, sizeof(Node));
-    var->kind = ND_LV;
-    var->lvar = lvar;
-    expect("]");
-    return new_add(var, idx);
 }
