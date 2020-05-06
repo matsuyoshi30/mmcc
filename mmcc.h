@@ -17,6 +17,7 @@ typedef enum {
     TK_RESERVED,
     TK_IDENT,
     TK_TYPE,
+    TK_STR,
     TK_NUM,
     TK_EOF,
 } Tokenkind;
@@ -29,6 +30,7 @@ struct Token {
     int val;
     char *str;
     int len;
+    int strlen;
 };
 
 extern Token *token;
@@ -52,6 +54,7 @@ struct Type {
 bool consume(char *op);
 bool peek(char *op);
 Token *consume_ident();
+Token *consume_str();
 Type *consume_type();
 void expect(char *op);
 int expect_number();
@@ -85,6 +88,7 @@ typedef enum {
     ND_FUNC,
     ND_EXPR_STMT,
     ND_RET,
+    ND_STR,
     ND_NUM,
 } Nodekind;
 
@@ -97,6 +101,9 @@ struct Var {
     int offset;
 
     bool is_local;
+
+    char *str;
+    int lc;
 };
 
 typedef struct Node Node;
@@ -137,6 +144,7 @@ struct Function {
 
 extern Var *locals;
 extern Var *globals;
+extern Var *strs;
 extern Function *code;
 
 void program();

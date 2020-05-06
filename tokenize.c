@@ -28,6 +28,15 @@ Token *consume_ident() {
     return tok;
 }
 
+// consume the current token if it is string
+Token *consume_str() {
+    if (token->kind != TK_STR)
+        return NULL;
+    Token *tok = token;
+    token = token->next;
+    return tok;
+}
+
 // check whether the current token matches 'op'
 void expect(char *op) {
     if (token->kind != TK_RESERVED || token->len != strlen(op) || memcmp(token->str, op, token->len))
@@ -150,6 +159,17 @@ void tokenize() {
 
         if (strchr("+-*/(){}[]><=,;&*", *p)) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
+            continue;
+        }
+
+        if (*p == '"') {
+            p++;
+            char *q = p;
+            while (*q && *q != '"')
+                q++;
+            cur = new_token(TK_STR, cur, p, q-p);
+            cur->strlen = q - p +1;
+            p += cur->strlen;
             continue;
         }
 

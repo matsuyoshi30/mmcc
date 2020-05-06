@@ -3,6 +3,8 @@
 Type *char_type = &(Type){TY_CHAR, 1};
 Type *int_type = &(Type){TY_INT, 4};
 
+static int lc = 0;
+
 // Parser
 
 bool is_integer(Type *type) {
@@ -186,6 +188,19 @@ Var *find_var(Token *tok) {
     return NULL;
 }
 
+Var *strs;
+
+Var *new_str(Token *token) {
+    Var *string = calloc(1, sizeof(Var));
+    string->type = array_of(char_type, token->strlen);
+    string->str = strndup(token->str, token->len);
+    string->next = strs;
+    string->lc = lc++;
+    strs = string;
+
+    return string;
+}
+
 Function *code;
 
 void program();
@@ -213,6 +228,8 @@ void program() {
     Function head;
     head.next = NULL;
     Function *cur = &head;
+
+    strs = NULL;
 
     globals = calloc(1, sizeof(Node));
 
@@ -561,7 +578,7 @@ Node *postfix() {
     return node;
 }
 
-// primary = '(' expr ')' | ident ( "(" funcargs* )? | num
+// primary = '(' expr ')' | ident ( "(" funcargs* )? | num | '"' str '"'
 Node *primary() {
     if (consume("(")) {
         Node *node = expr();
@@ -577,6 +594,10 @@ Node *primary() {
             if (find_var(tok))
                 return new_node_var(find_var(tok));
     }
+
+    tok = consume_str();
+    if (tok)
+        return new_node_var(new_str(tok));
 
     return new_node_num(expect_number());
 }

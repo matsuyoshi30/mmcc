@@ -14,6 +14,8 @@ void gen_lval(Node *node) {
     if (node->kind == ND_LV) {
         if (node->var->is_local)
             printf("  lea rax, [rbp-%d] # %s\n", node->var->offset, node->var->name);
+        else if (node->var->str)
+            printf("  lea rax, .LC%d\n", node->var->lc);
         else
             printf("  lea rax, %s[rip]\n", node->var->name);
         printf("  push rax\n");
@@ -221,6 +223,10 @@ void codegen() {
     printf(".intel_syntax noprefix\n");
 
     printf(".data\n");
+    for (Var *str=strs; str; str=str->next) {
+        printf(".LC%d:\n", str->lc);
+        printf("  .string \"%s\"\n", str->str);
+    }
     for (Var *global=globals; global->next; global=global->next) {
         printf("%s:\n", global->name);
         printf("  .zero %d\n", global->type->size);
