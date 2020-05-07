@@ -34,6 +34,12 @@ void check_type(Node *node) {
 
     check_type(node->lhs);
     check_type(node->rhs);
+    check_type(node->cond);
+    check_type(node->then);
+    check_type(node->els);
+    check_type(node->preop);
+    check_type(node->postop);
+    check_type(node->blocks);
 
     for (Node *n=node->blocks; n; n=n->next)
         check_type(n);
