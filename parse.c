@@ -278,13 +278,14 @@ Function *function(Type *type, char *funcname) {
     return func;
 }
 
-// funcparams = ( basetype ident ( "," basetype ident )* )?
+// funcparams = ( basetype ident type_suffix ( "," basetype ident type_suffix )* )?
 Var *funcparams() {
     if (consume(")"))
         return NULL; // no parameters
 
     Type *ty = basetype();
     char *name = expect_ident();
+    ty = type_suffix(ty);
 
     Var *params = new_lvar(ty, name);
     params->offset = ty->size;
@@ -293,6 +294,7 @@ Var *funcparams() {
     while (consume(",")) {
         ty = basetype();
         name = expect_ident();
+        ty = type_suffix(ty);
         cur->next = calloc(1, sizeof(Var));
         cur->next->type = ty;
         cur->next->name = name;
