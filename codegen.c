@@ -67,6 +67,7 @@ void gen_expr(Node *node) {
 
         for (int i=num_of_args-1; i>=0; i--)
             printf("  pop %s\n", argRegs8[i]);
+        printf("  mov al, 0\n");
         printf("  call %s\n", node->funcname);
         printf("  push rax\n");
         return;

@@ -11,7 +11,7 @@ assert() {
     expected="$1"
     input="$2"
 
-    ./mmcc "$input" > tmp.s
+    echo "$input" | ./mmcc - > tmp.s
     cc -static -o /tmp/tmpfs/tmp tmp.s /tmp/tmpfs/tmp2.o
     cp /tmp/tmpfs/tmp tmp
     ./tmp
