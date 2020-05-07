@@ -143,6 +143,23 @@ void tokenize() {
             continue;
         }
 
+        // skip line comment
+        if (strncmp(p, "//", 2) == 0) {
+            p += 2;
+            while (*p != '\n')
+                p++;
+            continue;
+        }
+
+        // skip block comment
+        if (strncmp(p, "/*", 2) == 0) {
+            char *q = strstr(p+2, "*/");
+            if (!q)
+                error("comments are not closed");
+            p = q + 2;
+            continue;
+        }
+
         char *reserved = is_reserved(p);
         if (reserved) {
             cur = new_token(TK_RESERVED, cur, p, strlen(reserved));

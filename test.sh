@@ -135,4 +135,6 @@ assert 99 'int main() { char *x="abc"; return x[2]; }'
 assert 0 'int main() { char *x="abc"; return x[3]; }'
 assert 4 'int main() { return sizeof("abc"); }'
 
+assert 1 'int main() { int a=1; /* a=2; */ return a; }'
+
 echo OK
