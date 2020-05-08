@@ -155,7 +155,7 @@ void tokenize() {
         if (strncmp(p, "/*", 2) == 0) {
             char *q = strstr(p+2, "*/");
             if (!q)
-                error("comments are not closed");
+                error_at(p, "comments are not closed");
             p = q + 2;
             continue;
         }

@@ -134,7 +134,7 @@ Node *new_add(Node *lhs, Node *rhs) {
         return new_node(ND_ADD, lhs, rhs);
     // ptr + ptr
     if (lhs->type->ptr_to && rhs->type->ptr_to)
-        error("invalid operands");
+        error_at(token->str, "invalid operands");
     // num + ptr -> ptr + num
     if (rhs->type->ptr_to) {
         Node *temp = lhs;
@@ -156,7 +156,7 @@ Node *new_sub(Node *lhs, Node *rhs) {
         return new_node(ND_SUB, lhs, rhs);
     // ptr + ptr
     if (lhs->type->ptr_to && rhs->type->ptr_to)
-        error("invalid operands");
+        error_at(token->str, "invalid operands");
     // ptr + num
     rhs = new_node(ND_MUL, rhs, new_node_num(lhs->type->ptr_to->size));
 
@@ -609,7 +609,7 @@ Node *primary() {
             expect(")");
 
             if (cur->kind != ND_EXPR_STMT)
-                error("statement expression returning void is not supported");
+                error_at(token->str, "statement expression returning void is not supported");
             return node;
         } else {
             Node *node = expr();
