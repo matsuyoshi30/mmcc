@@ -180,13 +180,33 @@ void tokenize() {
         }
 
         if (*p == '"') {
-            p++;
-            char *q = p;
-            while (*q && *q != '"')
-                q++;
-            cur = new_token(TK_STR, cur, p, q-p);
-            cur->strlen = q - p +1;
-            p += cur->strlen;
+            char *start = p + 1;
+            char *end = start;
+
+            while (*end && *end != '"') {
+                end++;
+                if (*end == '\\')
+                    end++;
+            }
+
+            char *buf = malloc(end-start+1);
+            int len = 0;
+
+            while (*start && *start != '"') {
+                if (*start == '\\') {
+                    start++;
+                    if (*start == '"')
+                        buf[len++] = *start;
+                } else {
+                    buf[len++] = *start;
+                }
+                start++;
+            }
+            buf[len++] = '\0';
+
+            cur = new_token(TK_STR, cur, buf, end-p);
+            cur->strlen = len;
+            p += end-p+1;
             continue;
         }
 
