@@ -88,6 +88,7 @@ typedef enum {
     ND_BLOCK, // {...}
     ND_FUNC,
     ND_EXPR_STMT,
+    ND_STMT_EXPR,
     ND_RET,
     ND_STR,
     ND_NUM,
@@ -126,7 +127,7 @@ struct Node {
     Node *preop;
     Node *postop;
 
-    Node *blocks; // for ND_BLOCK
+    Node *blocks; // for ND_BLOCK or ND_STMT_EXPR
 
     char *funcname;
     Node *args;

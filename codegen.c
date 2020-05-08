@@ -9,6 +9,7 @@ static char *argRegs4[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 static char *argRegs8[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 void gen_expr(Node *node);
+void gen_stmt(Node *node);
 
 void gen_lval(Node *node) {
     if (node->kind == ND_LV) {
@@ -85,6 +86,11 @@ void gen_expr(Node *node) {
         else
             printf("  mov [rax], rdi\n"); // store value from rdi into the address in rax
         printf("  push rdi\n");
+        return;
+    case ND_STMT_EXPR:
+        for (Node *block=node->blocks; block; block=block->next)
+            gen_stmt(block);
+        printf("  push rax\n");
         return;
     }
 

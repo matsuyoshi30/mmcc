@@ -137,4 +137,9 @@ assert 4 'int main() { return sizeof("abc"); }'
 
 assert 1 'int main() { int a=1; /* a=2; */ return a; }'
 
+assert 1 'int main() { return ({ 0; 1; }); }'
+assert 1 'int main() { ({ 0; return 1; 2; }); }'
+assert 1 'int main() { ({ 0; return 1; 2; }); return 3; }'
+assert 1 'int main() { return ({ int x=1; x; }); }'
+
 echo OK

@@ -39,7 +39,6 @@ void check_type(Node *node) {
     check_type(node->els);
     check_type(node->preop);
     check_type(node->postop);
-    check_type(node->blocks);
 
     for (Node *n=node->blocks; n; n=n->next)
         check_type(n);
@@ -68,6 +67,13 @@ void check_type(Node *node) {
             error("invalid pointer dereference");
         node->type = node->lhs->type->ptr_to;
         return;
+    case ND_STMT_EXPR: {
+        Node *block = node->blocks;
+        while (block->next)
+            block = block->next;
+        node->type = block->type;
+        return;
+    }
     case ND_FUNC:
     case ND_NUM:
         node->type = int_type;
@@ -586,12 +592,30 @@ Node *postfix() {
     return node;
 }
 
-// primary = '(' expr ')' | ident ( "(" funcargs* )? | num | '"' str '"'
+// primary = '(' '{' stmt ( stmt )* '}' ')' // last stmt should be expr_stmt
+//         | '(' expr ')' | ident ( "(" funcargs* )? | num | '"' str '"'
 Node *primary() {
     if (consume("(")) {
-        Node *node = expr();
-        expect(")");
-        return node;
+        if (consume("{")) {
+            Node *node = calloc(1, sizeof(Node));
+            node->kind = ND_STMT_EXPR;
+            node->blocks = stmt();
+            Node *cur = node->blocks;
+
+            while (!consume("}")) {
+                cur->next = stmt();
+                cur = cur->next;
+            }
+            expect(")");
+
+            if (cur->kind != ND_EXPR_STMT)
+                error("statement expression returning void is not supported");
+            return node;
+        } else {
+            Node *node = expr();
+            expect(")");
+            return node;
+        }
     }
 
     Token *tok = consume_ident();
