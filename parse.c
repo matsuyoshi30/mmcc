@@ -634,15 +634,15 @@ Node *primary() {
     return new_node_num(expect_number());
 }
 
-// funcargs = ( add ( "," add )* )? ")"
+// funcargs = ( assign ( "," assign )* )? ")"
 Node *funcargs() {
     if (consume(")"))
         return NULL; // no argument
 
-    Node *head = add();
+    Node *head = assign();
     Node *cur = head;
     while (consume(",")) {
-        cur->next = add();
+        cur->next = assign();
         cur = cur->next;
     }
     expect(")");
