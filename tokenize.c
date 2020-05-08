@@ -184,9 +184,9 @@ void tokenize() {
             char *end = start;
 
             while (*end && *end != '"') {
-                end++;
                 if (*end == '\\')
                     end++;
+                end++;
             }
 
             char *buf = malloc(end-start+1);
@@ -195,12 +195,14 @@ void tokenize() {
             while (*start && *start != '"') {
                 if (*start == '\\') {
                     start++;
-                    if (*start == '"')
-                        buf[len++] = *start;
+                    if (*start == '"') {
+                        buf[len++] = '\\';
+                        buf[len++] = '"';
+                        start++;
+                    }
                 } else {
-                    buf[len++] = *start;
+                    buf[len++] = *start++;
                 }
-                start++;
             }
             buf[len++] = '\0';
 
