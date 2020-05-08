@@ -242,13 +242,13 @@ void program() {
     Function *cur = &head;
 
     strs = NULL;
-
-    globals = calloc(1, sizeof(Node));
+    globals = calloc(1, sizeof(Var));
 
     while (!at_eof()) {
         Type *ty = basetype();
         char *name = expect_ident();
 
+        locals = NULL;
         if (peek("(")) {
             cur->next = function(ty, name);
             cur = cur->next;
