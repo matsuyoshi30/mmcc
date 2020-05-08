@@ -54,17 +54,17 @@ int main() {
     assert(1, ({ int c=5>3; c; }), "{ int c=5>3; c; }");
     assert(22, ({ int a; int b; a=13; b=a+9; b; }), "{ int a; int b; a=13; b=a+9; b; }");
 
-    assert(10, ({ int x; if (5>3) { x=10; } else { x=20; } x; }), "{ if (5>3) { 10; } }");
-    assert(20, ({ int x; if (5<3) { x=10; } else { x=20; } x; }), "{ if (5<3) { 10; } else { 20; } }");
-    assert(30, ({ int x; int foo=5; if (5<3) { x=10; } else { if (foo==4) { x=20; } else { x=30; } } x; }), "{ int foo=5; if (5<3) { 10; } else { if (foo==4) { 20; } else { 30; } } }");
-    assert(40, ({ int x; int foo=5; if (5>3) { if (foo==5) { x=40; } else { x=20; } } else { x=30; } x; }), "{ int foo=5; if (5>3) { if (foo==5) { 40; } else { 20; } } else { 30; } }");
+    assert(10, ({ int x; if (5>3) { x=10; } else { x=20; } x; }), "{ int x; if (5>3) { 10; } x; }");
+    assert(20, ({ int x; if (5<3) { x=10; } else { x=20; } x; }), "{ int x; if (5<3) { 10; } else { 20; } x; }");
+    assert(30, ({ int x; int foo=5; if (5<3) { x=10; } else { if (foo==4) { x=20; } else { x=30; } } x; }), "{ inx x; int foo=5; if (5<3) { 10; } else { if (foo==4) { 20; } else { 30; } } x; }");
+    assert(40, ({ int x; int foo=5; if (5>3) { if (foo==5) { x=40; } else { x=20; } } else { x=30; } x; }), "{ int x; int foo=5; if (5>3) { if (foo==5) { 40; } else { 20; } } else { 30; } x; }");
 
-    assert(5, ({ int i=1; while (i<5) { i=i+1; } i; }), "{ int i=1; while (i<5) { i=i+1; } { i; } }");
-    assert(10, ({ int x=0; for (int i=0; i<10; i=i+1) { x=x+1; } x; }), "{ int x=0; for (int i=0; i<10; i=i+1) { x=x+1; } { x; } }");
-    assert(55, ({ int j=0; for (int i=0; i<=10; i=i+1) { j=i+j; } j; }), "{ int j=0; for (int i=0; i<=10; i=i+1) { j=i+j; } { j; } }");
-    assert(100, ({ int a=0; for (int i=0; i<10; i=i+1) { if (i==5) { a=100; } } a; }), "{ int a=0; for (int i=0; i<10; i=i+1) { if (i==5) { a=100; a; } } }");
+    assert(5, ({ int i=1; while (i<5) { i=i+1; } i; }), "{ int i=1; while (i<5) { i=i+1; } i; }");
+    assert(10, ({ int x=0; for (int i=0; i<10; i=i+1) { x=x+1; } x; }), "{ int x=0; for (int i=0; i<10; i=i+1) { x=x+1; } x; }");
+    assert(55, ({ int j=0; for (int i=0; i<=10; i=i+1) { j=i+j; } j; }), "{ int j=0; for (int i=0; i<=10; i=i+1) { j=i+j; } j; }");
+    assert(100, ({ int a=0; for (int i=0; i<10; i=i+1) { if (i==5) { a=100; } } a; }), "{ int a=0; for (int i=0; i<10; i=i+1) { if (i==5) { a=100; } } a; }");
 
-    assert(6, ({ int a; int b; int c; if (5>3) { a=3; b=2; c=a*b; } c; }), "{ int a; int b; int c; if (5>3) { a=3; b=2; c=a*b; } { c; } }");
+    assert(6, ({ int a; int b; int c; if (5>3) { a=3; b=2; c=a*b; } c; }), "{ int a; int b; int c; if (5>3) { a=3; b=2; c=a*b; } c; }");
     assert(100, ({ int ret=0; for (int i=0; i<10; i=i+1) { int j=0; while (j<10) { ret=ret+1; j=j+1; } } ret; }), "{ int ret=0; for (int i=0; i<10; i=i+1) { int j=0; while (j<10) { ret=ret+1; j=j+1; } } ret; }");
 
     assert(5, testFunc1(), "{ testFunc1(); }");
@@ -113,13 +113,13 @@ int main() {
     assert(5, ({ int x[2][3]; int *y=x; y[5]=5; x[1][2]; }), "{ int x[2][3]; int *y=x; y[5]=5; x[1][2]; }");
     assert(6, ({ int x[2][3]; int *y=x; y[6]=6; x[2][0]; }), "{ int x[2][3]; int *y=x; y[6]=6; x[2][0]; }");
 
-    assert(1, ({ g1=1; g1; }), "{ a=1; a; }");
-    assert(2, ({ g2[0]=2; g2[1]=3; g2[2]=4; g2[0]; }), "{ b[0]=2; b[1]=3; b[2]=4; b[0]; }");
-    assert(3, ({ g2[0]=2; g2[1]=3; g2[2]=4; g2[1]; }), "{ b[0]=2; b[1]=3; b[2]=4; b[1]; }");
-    assert(4, ({ g2[0]=2; g2[1]=3; g2[2]=4; g2[2]; }), "{ b[0]=2; b[1]=3; b[2]=4; b[2]; }");
+    assert(1, ({ g1=1; g1; }), "{ g1=1; g1; }");
+    assert(2, ({ g2[0]=2; g2[1]=3; g2[2]=4; g2[0]; }), "{ g2[0]=2; g2[1]=3; g2[2]=4; g2[0]; }");
+    assert(3, ({ g2[0]=2; g2[1]=3; g2[2]=4; g2[1]; }), "{ g2[0]=2; g2[1]=3; g2[2]=4; g2[1]; }");
+    assert(4, ({ g2[0]=2; g2[1]=3; g2[2]=4; g2[2]; }), "{ g2[0]=2; g2[1]=3; g2[2]=4; g2[2]; }");
 
-    assert(4, ({ sizeof(g1); }), "{ sizeof(a); }");
-    assert(8, ({ sizeof(g3); }), "{ sizeof(c); }");
+    assert(4, ({ sizeof(g1); }), "{ sizeof(g1); }");
+    assert(8, ({ sizeof(g3); }), "{ sizeof(g3); }");
 
     assert(1, ({ char x; sizeof(x); }), "{ char x; sizeof(x); }");
     assert(10, ({ char x[10]; sizeof(x); }), "{ char x[10]; sizeof(x); }");
@@ -131,5 +131,5 @@ int main() {
     assert(4, ({ sizeof("abc"); }), "{ sizeof(\"abc\"); }");
 
     printf("OK\n");
-    0;
+    return 0;
 }
