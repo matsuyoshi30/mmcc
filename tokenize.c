@@ -199,6 +199,10 @@ void tokenize() {
                         buf[len++] = '\\';
                         buf[len++] = '"';
                         start++;
+                    } else if (*start == 'n') {
+                        buf[len++] = '\\';
+                        buf[len++] = 'n';
+                        start++;
                     }
                 } else {
                     buf[len++] = *start++;

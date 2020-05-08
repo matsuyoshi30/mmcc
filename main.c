@@ -51,26 +51,29 @@ char *read_file(char *path) {
             error("cannot open %s: %s\n", path, strerror(errno));
     }
 
-    size_t size;
-    if (fp != stdin) {
-        if (fseek(fp, 0, SEEK_END) == -1)
-            error("%s: fseek: %s\n", path, strerror(errno));
-        size = ftell(fp);
-        if (fseek(fp, 0, SEEK_SET) == -1)
-            error("%s: fseek: %s\n", path, strerror(errno));
-    } else {
-        size = 4096;
+    int buflen = 4096;
+    int nread = 0;
+    char *buf = malloc(buflen);
+
+    // Read the entire file.
+    for (;;) {
+        int end = buflen - 2; // extra 2 bytes for the trailing "\n\0"
+        int n = fread(buf + nread, 1, end - nread, fp);
+        if (n == 0)
+            break;
+        nread += n;
+        if (nread == end) {
+            buflen *= 2;
+            buf = realloc(buf, buflen);
+        }
     }
-
-    char *buf = calloc(1, size+2);
-    fread(buf, size, 1, fp);
-
-    if (size == 0 || buf[size-1] != '\n')
-        buf[size++] = '\n';
-    buf[size] = '\0';
 
     if (fp != stdin)
         fclose(fp);
+
+    if (nread == 0 || buf[nread-1] != '\n')
+        buf[nread++] = '\n';
+    buf[nread] = '\0';
 
     return buf;
 }
