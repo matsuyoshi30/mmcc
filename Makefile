@@ -13,9 +13,8 @@ mmcc: $(OBJS)
 $(OBJS): mmcc.h
 
 test: mmcc
-	cc -x c -c -o tests/alloc4.o tests/alloc4.c
 	./mmcc tests/test.c > tmp.s
-	cc -static -o tmp tmp.s tests/alloc4.o
+	cc -static -o tmp tmp.s
 	./tmp
 
 debug: mmcc

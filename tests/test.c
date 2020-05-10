@@ -82,10 +82,10 @@ int main() {
     assert(7, ({ int x=3; int y=5; *(&x+1)=7; y; }), "{ int x=3; int y=5; *(&x+1)=7; y; }");
     assert(7, ({ int x=3; int y=5; *(&y-1)=7; x; }), "{ int x=3; int y=5; *(&y-1)=7; x; }");
 
-    assert(4, ({ int *p; alloc4(&p, 1, 2, 4, 8); int *q=p+2; *q; }), "{ int *p; alloc4(&p, 1, 2, 4, 8); int *q=p+2; *q; }");
-    assert(8, ({ int *p; alloc4(&p, 1, 2, 4, 8); int *q=3+p; *q; }), "{ int *p; alloc4(&p, 1, 2, 4, 8); int *q=3+p; *q; }");
-    assert(1, ({ int *p; alloc4(&p, 1, 2, 4, 8); int *q=p+2; *(q-2); }), "{ int *p; alloc4(&p, 1, 2, 4, 8); int *q=p+2; *(q-2); }");
-    assert(2, ({ int *p; alloc4(&p, 1, 2, 4, 8); int *q=3+p; *(q-2); }), "{ int *p; alloc4(&p, 1, 2, 4, 8); int *q=3+p; *(q-2); }");
+    assert(30, ({ int *p; int inttype; int *p = malloc(sizeof(inttype)*4); for (int i=1; i<=4; i=i+1) p[i-1] = i*10;int *q=p+2; *q; }), "{ int *p; int inttype; int *p = malloc(sizeof(inttype)*4); for (int i=1; i<=4; i=i+1) p[i-1] = i*10;int *q=p+2; *q; }");
+    assert(40, ({ int *p; int inttype; int *p = malloc(sizeof(inttype)*4); for (int i=1; i<=4; i=i+1) p[i-1] = i*10;int *q=3+p; *q; }), "{ int *p; int inttype; int *p = malloc(sizeof(inttype)*4); for (int i=1; i<=4; i=i+1) p[i-1] = i*10;int *q=3+p; *q; }");
+    assert(10, ({ int *p; int inttype; int *p = malloc(sizeof(inttype)*4); for (int i=1; i<=4; i=i+1) p[i-1] = i*10;int *q=p+2; *(q-2); }), "{ int *p; int inttype; int *p = malloc(sizeof(inttype)*4); for (int i=1; i<=4; i=i+1) p[i-1] = i*10;int *q=p+2; *(q-2); }");
+    assert(20, ({ int *p; int inttype; int *p = malloc(sizeof(inttype)*4); for (int i=1; i<=4; i=i+1) p[i-1] = i*10;int *q=3+p; *(q-2); }), "{ int *p; int inttype; int *p = malloc(sizeof(inttype)*4); for (int i=1; i<=4; i=i+1) p[i-1] = i*10;int *q=3+p; *(q-2); }");
 
     assert(4, ({ int x; sizeof(x); }), "{ int x; sizeof(x); }");
     assert(8, ({ int *y; sizeof(y); }), "{ int *y; sizeof(y); }");
