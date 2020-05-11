@@ -122,6 +122,18 @@ char *is_type(char *c) {
     return NULL;
 }
 
+char *is_assign(char *c) {
+    char *ops[] = {"+=", "-=", "*=", "/="};
+
+    for (int i=0; i<sizeof(ops)/sizeof(*ops); i++) {
+        int len = strlen(ops[i]);
+        if (strncmp(c, ops[i], len) == 0)
+            return ops[i];
+    }
+
+    return NULL;
+}
+
 int num_of_digits(int n) {
     int cnt = 0;
     while (n) {
@@ -171,6 +183,13 @@ void tokenize() {
         if (typeword) {
             cur = new_token(TK_TYPE, cur, p, strlen(typeword));
             p += strlen(typeword);
+            continue;
+        }
+
+        char *assignment = is_assign(p);
+        if (assignment) {
+            cur = new_token(TK_RESERVED, cur, p, strlen(assignment));
+            p += strlen(assignment);
             continue;
         }
 

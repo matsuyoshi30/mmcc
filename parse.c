@@ -489,12 +489,20 @@ Node *expr() {
     return assign();
 }
 
-// assign = equality ( "=" assign )?
+// assign = equality ( "=" assign | "+=" assign | "-=" assign | "*=" assign | "/=" assign )?
 Node *assign() {
     Node *node = equality();
 
     if (consume("="))
         node = new_node(ND_AS, node, assign());
+    if (consume("+="))
+        node = new_node(ND_AS, node, new_node(ND_ADD, node, assign()));
+    if (consume("-="))
+        node = new_node(ND_AS, node, new_node(ND_SUB, node, assign()));
+    if (consume("*="))
+        node = new_node(ND_AS, node, new_node(ND_MUL, node, assign()));
+    if (consume("/="))
+        node = new_node(ND_AS, node, new_node(ND_DIV, node, assign()));
 
     return node;
 }
