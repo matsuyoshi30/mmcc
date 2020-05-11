@@ -175,7 +175,12 @@ void tokenize() {
         }
 
         if (strchr("+-*/(){}[]><=,;&*", *p)) {
-            cur = new_token(TK_RESERVED, cur, p++, 1);
+            if (strncmp(p,  "++", 2) == 0 || strncmp(p, "--", 2) == 0) {
+                cur = new_token(TK_RESERVED, cur, p, 2);
+                p += 2;
+            } else {
+                cur = new_token(TK_RESERVED, cur, p++, 1);
+            }
             continue;
         }
 
