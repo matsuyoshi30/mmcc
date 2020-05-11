@@ -141,7 +141,7 @@ Node *new_add(Node *lhs, Node *rhs) {
         lhs = rhs;
         rhs = temp;
     }
-    // num + ptr
+    // ptr + num
     rhs = new_node(ND_MUL, rhs, new_node_num(lhs->type->ptr_to->size));
 
     return new_node(ND_ADD, lhs, rhs);
@@ -290,7 +290,7 @@ Function *function(Type *type, char *funcname) {
     return func;
 }
 
-// funcparams = ( basetype ident type_suffix ( "," basetype ident type_suffix )* )?
+// funcparams = ( basetype ident type_suffix ( "," basetype ident type_suffix )* )? ")"
 Var *funcparams() {
     if (consume(")"))
         return NULL; // no parameters
@@ -593,7 +593,9 @@ Node *postfix() {
 }
 
 // primary = '(' '{' stmt ( stmt )* '}' ')' // last stmt should be expr_stmt
-//         | '(' expr ')' | ident ( "(" funcargs* )? | num | '"' str '"'
+//         | '(' expr ')'
+//         | ident "(" funcargs* )?
+//         | num | '"' str '"'
 Node *primary() {
     if (consume("(")) {
         if (consume("{")) {
