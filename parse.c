@@ -594,7 +594,7 @@ Node *postfix() {
 
 // primary = '(' '{' stmt ( stmt )* '}' ')' // last stmt should be expr_stmt
 //         | '(' expr ')'
-//         | ident "(" funcargs* )?
+//         | ident (( "(" funcargs* )? | ('++' | '--'))
 //         | num | '"' str '"'
 Node *primary() {
     if (consume("(")) {
@@ -622,11 +622,25 @@ Node *primary() {
 
     Token *tok = consume_ident();
     if (tok) {
-        if (consume("("))
+        if (consume("(")) {
             return new_node_func(strndup(tok->str, tok->len), funcargs());
-        else
-            if (find_var(tok))
-                return new_node_var(find_var(tok));
+        } else {
+            Node *node =  new_node_var(find_var(tok));
+            Node *rhs = calloc(1, sizeof(Node));
+            if (consume("++")) {
+                rhs->kind = ND_ADD;
+                rhs->lhs = node;
+                rhs->rhs = new_node_num(1);
+                node = new_node(ND_AS, node, rhs);
+            } else if (consume("--")) {
+                rhs->kind = ND_SUB;
+                rhs->lhs = node;
+                rhs->rhs = new_node_num(1);
+                node = new_node(ND_AS, node, rhs);
+            }
+
+            return node;
+        }
     }
 
     tok = consume_str();

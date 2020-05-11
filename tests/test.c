@@ -130,6 +130,11 @@ int main() {
     assert(0, ({ char *x="abc"; x[3]; }), "{ char *x=\"abc\"; x[3]; }");
     assert(4, ({ sizeof("abc"); }), "{ sizeof(\"abc\"); }");
 
+    assert(3, ({ int x=2; x++; }), "{ int x=2; x++; }");
+    assert(1, ({ int x=2; x--; }), "{ int x=2; x--; }");
+    // assert(2, ({ int x=2; int y=x++; y; }), "{ int x=2; int y=x++; y; }");
+    // assert(2, ({ int x=2; int y=x--; y; }), "{ int x=2; int y=x--; y; }");
+
     printf("OK\n");
     return 0;
 }
