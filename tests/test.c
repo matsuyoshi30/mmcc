@@ -135,6 +135,11 @@ int main() {
     // assert(2, ({ int x=2; int y=x++; y; }), "{ int x=2; int y=x++; y; }");
     // assert(2, ({ int x=2; int y=x--; y; }), "{ int x=2; int y=x--; y; }");
 
+    assert(5, ({ int x=2; x+=3; x; }), "{ int x=2; x+=3; x; }");
+    assert(2, ({ int x=3; x-=1; x; }), "{ int x=3; x-=1; x; }");
+    assert(8, ({ int x=4; x*=2; x; }), "{ int x=4; x*=2; x; }");
+    assert(3, ({ int x=6; x/=2; x; }), "{ int x=6; x/=2; x; }");
+
     printf("OK\n");
     return 0;
 }
