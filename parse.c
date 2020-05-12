@@ -324,7 +324,7 @@ Var *funcparams() {
 //        | "if" "(" expr ")" stmt ( "else" stmt )?
 //        | "while" "(" expr ")" stmt
 //        | "for" "(" expr_stmt? ";" expr? ";" expr_stmt? ")" stmt
-//        | declaration ";"
+//        | declaration
 //        | expr_stmt ";"
 Node *stmt() {
     Node *node;
@@ -388,12 +388,13 @@ Node *stmt() {
         if (consume(";")) {
             node->preop = NULL;
         } else {
-            if (peek("int") || peek("char"))
+            if (peek("int") || peek("char")) {
                 node->preop = declaration();
-            else
+            } else {
                 node->preop = expr_stmt();
+                expect(";");
+            }
             check_type(node->preop);
-            expect(";");
         }
 
         if (consume(";")) {
@@ -420,7 +421,6 @@ Node *stmt() {
     if (peek("int") || peek("char")) {
         node = declaration();
         check_type(node);
-        expect(";");
         return node;
     }
 
@@ -430,26 +430,46 @@ Node *stmt() {
     return node;
 }
 
-// declaration = basetype ident (( "[" num "]" ) | ( "=" expr ))?
+// declaration = basetype ident (( type_suffix ) | ( "=" expr ))? ( "," ident (( type-suffix ) | ( "=" expr ))? )? ";"
 Node *declaration() {
-    Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_LV;
+    Node head;
+    head.next = NULL;
+    Node *cur = &head;
 
     Type *ty = basetype();
-    char *ident = expect_ident();
-    ty = type_suffix(ty);
 
-    Var *var = new_lvar(ty, ident);;
-    var->offset = locals->offset + ty->size;
+    int num = 0;
+    while (!consume(";")) {
+        if (num > 0)
+            expect(",");
 
-    node->var = var;
+        Node *node = calloc(1, sizeof(Node));
+        node->kind = ND_LV;
 
-    if (consume("=")) {
-        Node *n = calloc(1, sizeof(Node));
-        n->kind = ND_EXPR_STMT;
-        n->lhs = new_node(ND_AS, node, expr());
-        return n;
+        char *ident = expect_ident();
+        Type *type = type_suffix(ty);
+
+        Var *var = new_lvar(type, ident);;
+        var->offset = locals->offset + ty->size;
+
+        node->var = var;
+
+        if (consume("=")) {
+            Node *n = calloc(1, sizeof(Node));
+            n->kind = ND_EXPR_STMT;
+            n->lhs = new_node(ND_AS, node, expr());
+            cur->next = n;
+        } else {
+            cur->next = node;
+        }
+
+        num++;
+        cur = cur->next;
     }
+
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_BLOCK;
+    node->blocks = head.next;
 
     return node;
 }
