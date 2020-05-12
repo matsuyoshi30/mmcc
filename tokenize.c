@@ -216,7 +216,7 @@ void tokenize() {
             char *buf = malloc(end-start+1);
             int len = 0;
 
-            while (*start && *start != '"') {
+            while (*start != '"') {
                 if (*start == '\\') {
                     start++;
                     if (*start == '"') {
