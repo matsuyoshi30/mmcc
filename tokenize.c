@@ -134,6 +134,25 @@ char *is_assign(char *c) {
     return NULL;
 }
 
+char is_escape(char *c) {
+    switch (*c) {
+    case 'a':
+        return '\a';
+    case 'b':
+        return '\b';
+    case 'f':
+        return '\f';
+    case 'r':
+        return '\r';
+    case 't':
+        return '\t';
+    case 'v':
+        return '\v';
+    }
+
+    return 0;
+}
+
 int num_of_digits(int n) {
     int cnt = 0;
     while (n) {
@@ -219,14 +238,13 @@ void tokenize() {
             while (*start != '"') {
                 if (*start == '\\') {
                     start++;
-                    if (*start == '"') {
-                        buf[len++] = '\\';
-                        buf[len++] = '"';
+                    char es = is_escape(start);
+                    if (es) {
+                        buf[len++] = es;
                         start++;
-                    } else if (*start == 'n') {
+                    } else {
                         buf[len++] = '\\';
-                        buf[len++] = 'n';
-                        start++;
+                        buf[len++] = *start++;
                     }
                 } else {
                     buf[len++] = *start++;

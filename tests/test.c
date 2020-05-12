@@ -130,6 +130,14 @@ int main() {
     assert(0, ({ char *x="abc"; x[3]; }), "{ char *x=\"abc\"; x[3]; }");
     assert(4, ({ sizeof("abc"); }), "{ sizeof(\"abc\"); }");
 
+    assert(7, ({ "\a"[0]; }), "{ \"\\a\"[0]; }");
+    assert(8, ({ "\b"[0]; }), "{ \"\\b\"[0]; }");
+    assert(12, ({ "\f"[0]; }), "{ \"\\f\"[0]; }");
+    assert(13, ({ "\r"[0]; }), "{ \"\\r\"[0]; }");
+    assert(9, ({ "\t"[0]; }), "{ \"\\t\"[0]; }");
+    assert(11, ({ "\v"[0]; }), "{ \"\\v\"[0]; }");
+
+
     assert(3, ({ int x=2; x++; }), "{ int x=2; x++; }");
     assert(1, ({ int x=2; x--; }), "{ int x=2; x--; }");
     // assert(2, ({ int x=2; int y=x++; y; }), "{ int x=2; int y=x++; y; }");
