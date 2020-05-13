@@ -142,12 +142,16 @@ char is_escape(char *c) {
         return '\b';
     case 'f':
         return '\f';
+    case 'n':
+        return '\n';
     case 'r':
         return '\r';
     case 't':
         return '\t';
     case 'v':
         return '\v';
+    default:
+        return *c;
     }
 
     return 0;
@@ -237,15 +241,8 @@ void tokenize() {
 
             while (*start != '"') {
                 if (*start == '\\') {
-                    start++;
-                    char es = is_escape(start);
-                    if (es) {
-                        buf[len++] = es;
-                        start++;
-                    } else {
-                        buf[len++] = '\\';
-                        buf[len++] = *start++;
-                    }
+                    buf[len++] = is_escape(start+1);
+                    start += 2;
                 } else {
                     buf[len++] = *start++;
                 }

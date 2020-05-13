@@ -232,7 +232,9 @@ void codegen() {
     printf(".data\n");
     for (Var *str=strs; str; str=str->next) {
         printf(".LC%d:\n", str->lc);
-        printf("  .string \"%s\"\n", str->str);
+        for (int i=0; i<strlen(str->str); i++)
+            printf("  .byte %d # %c\n", str->str[i], str->str[i]);
+        printf("  .byte 0\n");
     }
     for (Var *global=globals; global->next; global=global->next) {
         printf("%s:\n", global->name);
