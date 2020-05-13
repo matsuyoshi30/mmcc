@@ -221,6 +221,7 @@ Var *funcparams();
 Node *stmt();
 Node *declaration();
 Type *basetype();
+Type *declarator(Type *basetype);
 Type *type_suffix(Type *ty);
 Node *expr_stmt();
 Node *expr();
@@ -235,7 +236,7 @@ Node *primary();
 Node *funcargs();
 Node *read_array();
 
-// program = ( basetype ident ( function | gvar ) )*
+// program = ( basetype ident ( function | gvar ";" ) )*
 void program() {
     Function head;
     head.next = NULL;
@@ -246,6 +247,8 @@ void program() {
 
     while (!at_eof()) {
         Type *ty = basetype();
+        while (consume("*"))
+            ty = pointer_to(ty);
         char *name = expect_ident();
 
         locals = NULL;
@@ -290,14 +293,17 @@ Function *function(Type *type, char *funcname) {
     return func;
 }
 
-// funcparams = ( basetype ident type_suffix ( "," basetype ident type_suffix )* )? ")"
+// funcparams = ( basetype "*"* ident ( type_suffix )? ( "," basetype "*"* ident ( type_suffix )? )* )? ")"
 Var *funcparams() {
     if (consume(")"))
         return NULL; // no parameters
 
     Type *ty = basetype();
+    while (consume("*"))
+        ty = pointer_to(ty);
     char *name = expect_ident();
     ty = type_suffix(ty);
+    ty->name = name;
 
     Var *params = new_lvar(ty, name);
     params->offset = ty->size;
@@ -305,6 +311,8 @@ Var *funcparams() {
 
     while (consume(",")) {
         ty = basetype();
+        while (consume("*"))
+            ty = pointer_to(ty);
         name = expect_ident();
         ty = type_suffix(ty);
         cur->next = calloc(1, sizeof(Var));
@@ -430,7 +438,7 @@ Node *stmt() {
     return node;
 }
 
-// declaration = basetype ident (( type_suffix ) | ( "=" expr ))? ( "," ident (( type-suffix ) | ( "=" expr ))? )? ";"
+// declaration = basetype declarator ( "=" expr )? ( "," declarator ( "=" expr )? )? ";"
 Node *declaration() {
     Node head;
     head.next = NULL;
@@ -443,15 +451,13 @@ Node *declaration() {
         if (num > 0)
             expect(",");
 
+        Type *type = declarator(ty);
+
+        Var *var = new_lvar(type, type->name);
+        var->offset = locals->offset + type->size;
+
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_LV;
-
-        char *ident = expect_ident();
-        Type *type = type_suffix(ty);
-
-        Var *var = new_lvar(type, ident);;
-        var->offset = locals->offset + ty->size;
-
         node->var = var;
 
         if (consume("=")) {
@@ -474,26 +480,47 @@ Node *declaration() {
     return node;
 }
 
-// basetype = type "*"*
+// basetype = type
 Type *basetype() {
     char *tw = expect_type();
-    Type *type = int_type;
-    if (strncmp(tw, "char", 4)==0)
-        type = char_type;
+    if (strncmp(tw, "int", 3) == 0)
+        return int_type;
+    if (strncmp(tw, "char", 4) == 0)
+        return char_type;
 
+    return NULL;
+}
+
+// declarator = "*"* ( "(" declarator ")" | ident ) ( type_suffix )?
+Type *declarator(Type *basetype) {
+    Type *type = basetype;
     while (consume("*"))
         type = pointer_to(type);
+
+    if (consume("(")) {
+        Type *placeholder = calloc(1, sizeof(Type)); // TODO 理解
+        Type *nestedType = declarator(placeholder);
+        expect(")");
+        placeholder = type_suffix(type);
+        return nestedType;
+    }
+    char *name = expect_ident();
+    type = type_suffix(type);
+    type->name = name;
+
     return type;
 }
 
 // type_suffix = ( "[" num "]" ( type_suffix )? )?
 Type *type_suffix(Type *ty) {
-    if (!consume("["))
-        return ty;
-    int num = expect_number();
-    expect("]");
-    ty = type_suffix(ty);
-    return array_of(ty, num);
+    if (consume("[")) {
+        int num = expect_number();
+        expect("]");
+        ty = type_suffix(ty);
+        return array_of(ty, num);
+    }
+
+    return ty;
 }
 
 // expr_stmt = expr

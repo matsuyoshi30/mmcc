@@ -50,6 +50,8 @@ struct Type {
     int size;
     struct Type *ptr_to;
     size_t size_array;
+
+    char *name;
 };
 
 bool consume(char *op);

@@ -151,6 +151,9 @@ int main() {
     assert(8, ({ int x=6, y=2; x+y; }), "{ int x=6, y=2; x+y; }");
     assert(7, ({ int x=4, y[2]; y[0]=1; y[1]=3; x+y[1]; }), "{ int x=4, y[2]; y[0]=1; y[1]=3; x+y[1]; }");
 
+    assert(24, ({ int *x[3]; sizeof(x); }), "({ int *x[3]; sizeof(x); })");
+    assert(8, ({ int (*x)[3]; sizeof(x); }), "({ int (*x)[3]; sizeof(x); })");
+
     printf("OK\n");
     return 0;
 }
