@@ -497,8 +497,12 @@ Type *declarator(Type *basetype) {
     while (consume("*"))
         type = pointer_to(type);
 
+    // e.g.) int (*x)[3];
+    // => *x -> * ___
+    //    int y[num] -> [] int // placeholder
+    // ===> * [] int
     if (consume("(")) {
-        Type *placeholder = calloc(1, sizeof(Type)); // TODO 理解
+        Type *placeholder = calloc(1, sizeof(Type));
         Type *nestedType = declarator(placeholder);
         expect(")");
         placeholder = type_suffix(type);
