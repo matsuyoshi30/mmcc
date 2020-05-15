@@ -166,6 +166,15 @@ Node *new_sub(Node *lhs, Node *rhs) {
 Var *locals;
 Var *globals;
 
+Var *new_params(Type *type, char *name) {
+    Var *var = calloc(1, sizeof(Var));
+    var->type = type;
+    var->name = name;
+    var->is_local = true;
+
+    return var;
+}
+
 Var *new_lvar(Type *type, char *name) {
     Var *var = calloc(1, sizeof(Var));
     var->type = type;
@@ -293,38 +302,31 @@ Function *function(Type *type, char *funcname) {
     return func;
 }
 
-// funcparams = ( basetype "*"* ident ( type_suffix )? ( "," basetype "*"* ident ( type_suffix )? )* )? ")"
+// funcparams = ( basetype declarator ( "," basetype declarator )* )? ")"
 Var *funcparams() {
-    if (consume(")"))
-        return NULL; // no parameters
+    Var head;
+    head.next = NULL;
+    Var *cur = &head;
 
-    Type *ty = basetype();
-    while (consume("*"))
-        ty = pointer_to(ty);
-    char *name = expect_ident();
-    ty = type_suffix(ty);
-    ty->name = name;
+    int num = 0;
+    while (!consume(")")) {
+        if (num > 0)
+            expect(",");
 
-    Var *params = new_lvar(ty, name);
-    params->offset = ty->size;
-    Var *cur = params;
+        Type *base = basetype();
+        Type *type = declarator(base);
+        char *name = type->name;
 
-    while (consume(",")) {
-        ty = basetype();
-        while (consume("*"))
-            ty = pointer_to(ty);
-        name = expect_ident();
-        ty = type_suffix(ty);
-        cur->next = calloc(1, sizeof(Var));
-        cur->next->type = ty;
-        cur->next->name = name;
-        cur->next->offset = cur->offset + ty->size;
-        cur->next->is_local = true;
+        Var *var = new_params(type, name);
+        var->offset = cur->offset + type->size;
+
+        cur->next = var;
+
+        num++;
         cur = cur->next;
     }
-    expect(")");
 
-    return params;
+    return head.next;
 }
 
 // stmt = "return" expr ";"
