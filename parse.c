@@ -64,7 +64,7 @@ void check_type(Node *node) {
         return;
     case ND_DEREF:
         if (!node->lhs->type->ptr_to)
-            error("invalid pointer dereference");
+            error("invalid pointer dereference: %s", node->lhs->type->name);
         node->type = node->lhs->type->ptr_to;
         return;
     case ND_STMT_EXPR: {
