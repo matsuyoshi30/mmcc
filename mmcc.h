@@ -12,6 +12,8 @@ extern char *user_input;
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 
+void nop();
+
 // Tokenizer
 
 typedef enum {
