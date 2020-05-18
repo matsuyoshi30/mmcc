@@ -243,7 +243,7 @@ void codegen() {
     for (Var *str=strs; str; str=str->next) {
         printf(".LC%d:\n", str->lc);
         for (int i=0; i<strlen(str->str); i++)
-            printf("  .byte %d # %c\n", str->str[i], str->str[i]);
+            printf("  .byte %d # %c\n", str->str[i], str->str[i]==10 ? 0 : str->str[i]);
         printf("  .byte 0\n");
     }
     for (Var *global=globals; global->next; global=global->next) {
