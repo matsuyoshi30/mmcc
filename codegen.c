@@ -92,6 +92,11 @@ void gen_expr(Node *node) {
             gen_stmt(block);
         printf("  push rax\n");
         return;
+    case ND_COMMA:
+        gen_expr(node->lhs);
+        printf("  pop rax\n");
+        gen_expr(node->rhs);
+        return;
     }
 
     gen_expr(node->lhs);
@@ -211,6 +216,11 @@ void gen_stmt(Node *node) {
         printf(".Lend%03d:\n", seq);
         return;
     }
+    case ND_COMMA:
+        gen_expr(node->lhs);
+        printf("  pop rax\n");
+        gen_expr(node->rhs);
+        return;
     case ND_EXPR_STMT:
         gen_expr(node->lhs);
         printf("  pop rax\n");

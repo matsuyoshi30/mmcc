@@ -74,6 +74,9 @@ void check_type(Node *node) {
         node->type = block->type;
         return;
     }
+    case ND_COMMA:
+        node->type = node->rhs->type;
+        return;
     case ND_FUNC:
     case ND_NUM:
         node->type = int_type;
@@ -537,9 +540,14 @@ Node *expr_stmt() {
     return node;
 }
 
-// expr = assign
+// expr = assign ( "," assign )*
 Node *expr() {
-    return assign();
+    Node *node = assign();
+
+    while (consume(","))
+        node = new_node(ND_COMMA, node, assign());
+
+    return node;
 }
 
 // assign = equality ( "=" assign | "+=" assign | "-=" assign | "*=" assign | "/=" assign )?
