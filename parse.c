@@ -465,7 +465,7 @@ Node *declaration() {
         if (consume("=")) {
             Node *n = calloc(1, sizeof(Node));
             n->kind = ND_EXPR_STMT;
-            n->lhs = new_node(ND_AS, node, expr());
+            n->lhs = new_node(ND_AS, node, assign());
             cur->next = n;
         } else {
             cur->next = node;
