@@ -505,14 +505,14 @@ Type *declarator(Type *basetype) {
         type = pointer_to(type);
 
     // e.g.) int (*x)[3];
-    // => *x -> * ___
-    //    int y[num] -> [] int // placeholder
-    // ===> * [] int
+    // -> (*x)       >>> * ___
+    // -> int _[num] >>> [] int // placeholder
+    // => * [] int
     if (consume("(")) {
         Type *placeholder = calloc(1, sizeof(Type));
         Type *nestedType = declarator(placeholder);
         expect(")");
-        placeholder = type_suffix(type);
+        *placeholder = *type_suffix(type);
         return nestedType;
     }
     char *name = expect_ident();
