@@ -40,14 +40,14 @@ Token *consume_str() {
 // check whether the current token matches 'op'
 void expect(char *op) {
     if (token->kind != TK_RESERVED || token->len != strlen(op) || memcmp(token->str, op, token->len))
-        error_at(token->str, "expected '%s' but got '%s'\n", op, token->str);
+        error_at(token->str, "expected '%s'\n", op);
     token = token->next;
 }
 
 // check whether the current token is number
 int expect_number() {
     if (token->kind != TK_NUM)
-        error_at(token->str, "expected number but got '%s'\n", token->str);
+        error_at(token->str, "expected number\n");
     int val = token->val;
     token = token->next;
     return val;
@@ -56,7 +56,7 @@ int expect_number() {
 // expect the current token if it is type word
 char *expect_type() {
     if (token->kind != TK_TYPE)
-        error_at(token->str, "expected type word but got '%s'\n", token->str);
+        error_at(token->str, "expected type word\n");
     char *typeword = strndup(token->str, token->len);
     token = token->next;
     return typeword;
@@ -65,7 +65,7 @@ char *expect_type() {
 // check whether the current token is ident
 char *expect_ident() {
     if (token->kind != TK_IDENT)
-        error_at(token->str, "expected identifier but got '%s'\n", token->str);
+        error_at(token->str, "expected identifier\n");
     char *name = strndup(token->str, token->len);
     token = token->next;
     return name;
