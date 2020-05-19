@@ -161,6 +161,11 @@ int main() {
     assert(6, ({ int i=2, j=3; i=(j,6); i;}), "{ int i=2, j=3; i=(j,6); i;}");
     assert(6, ({ int i=2, j=3; i=(4,5,6); i;}), "{ int i=2, j=3; i=(4,5,6); i;}");
 
+    assert(1, ({ struct { int n; } a; a.n=1; a.n; }), "{ struct { int n; } a; a.n=1; a.n; }");
+    assert(4, ({ struct { int n; } a; sizeof(a); }), "{ struct { int n; } a; sizeof(a); }");
+    assert(3, ({ struct { int m; int n; } a; a.m=1; a.n=2; a.m+a.n; }), "{ struct { int m; int n; } a; a.m=1; a.n=2; a.m+a.n; }");
+    assert(8, ({ struct { int m; int n; } a; sizeof(a); }), "{ struct { int m; int n; } a; sizeof(a); }");
+
     printf("OK\n");
     return 0;
 }

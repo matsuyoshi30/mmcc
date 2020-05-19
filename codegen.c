@@ -24,6 +24,12 @@ void gen_lval(Node *node) {
     } else if (node->kind == ND_DEREF) {
         gen_expr(node->lhs);
         return;
+    } else if (node->kind == ND_MEMBER) {
+        gen_lval(node->lhs);
+        printf("  pop rax\n");
+        printf("  add rax, %d\n", node->member->offset);
+        printf("  push rax\n");
+        return;
     }
 
     error("The left value of the assignment is not a variable.");
@@ -47,6 +53,7 @@ void gen_expr(Node *node) {
         printf("  push %d\n", node->val);
         return;
     case ND_LV:
+    case ND_MEMBER:
         gen_lval(node);
         if (node->type->kind != TY_ARR)
             load(node->type);

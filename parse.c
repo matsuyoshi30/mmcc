@@ -79,6 +79,9 @@ void check_type(Node *node) {
     case ND_COMMA:
         node->type = node->rhs->type;
         return;
+    case ND_MEMBER:
+        node->type = node->member->type;
+        return;
     case ND_FUNC:
     case ND_NUM:
         node->type = int_type;
@@ -237,6 +240,8 @@ Node *declaration();
 Type *basetype();
 Type *declarator(Type *basetype);
 Type *type_suffix(Type *ty);
+Member *struct_members();
+Type *struct_decl();
 Node *expr_stmt();
 Node *expr();
 Node *assign();
@@ -246,6 +251,8 @@ Node *add();
 Node *mul();
 Node *unary();
 Node *postfix();
+Node *struct_ref();
+Member *get_struct_member();
 Node *primary();
 Node *funcargs();
 Node *read_array();
@@ -433,7 +440,7 @@ Node *stmt() {
         return node;
     }
 
-    if (peek("int") || peek("char")) {
+    if (peek("int") || peek("char") || peek("struct")) {
         node = declaration();
         check_type(node);
         return node;
@@ -487,13 +494,15 @@ Node *declaration() {
     return node;
 }
 
-// basetype = type
+// basetype = "int" | "char" | struct_decl
 Type *basetype() {
     char *tw = expect_type();
-    if (strncmp(tw, "int", 3) == 0)
+    if (strcmp(tw, "int") == 0)
         return int_type;
-    if (strncmp(tw, "char", 4) == 0)
+    if (strcmp(tw, "char") == 0)
         return char_type;
+    if (strcmp(tw, "struct") == 0)
+        return struct_decl();
 
     return NULL;
 }
@@ -532,6 +541,51 @@ Type *type_suffix(Type *ty) {
     }
 
     return ty;
+}
+
+// struct_decl = "{" struct_member*
+Type *struct_decl() {
+    expect("{");
+
+    Type *type = calloc(1, sizeof(Type));
+    type->kind = TY_STRUCT;
+    type->members = struct_members();
+
+    // calculate offset and struct size
+    int offset = 0;
+    for (Member *m=type->members; m; m=m->next) {
+        m->offset = offset;
+        offset += m->type->size;
+    }
+    type->size = offset;
+
+    return type;
+}
+
+// struct_member = ( basetype declarator ( "," declarator )* ";" )* "}"
+Member *struct_members() {
+    Member head;
+    head.next = NULL;
+    Member *cur = &head;
+
+    while (!consume("}")) {
+        int num = 0;
+        Type *base = basetype();
+        while (!consume(";")) {
+            if (num > 0)
+                expect(",");
+
+            Member *member = calloc(1, sizeof(Member));
+            member->type = declarator(base);
+            member->name = member->type->name;
+            cur->next = member;
+
+            num++;
+            cur = cur->next;
+        }
+    }
+
+    return head.next;
 }
 
 // expr_stmt = expr
@@ -650,7 +704,7 @@ Node *unary() {
     return postfix();
 }
 
-// postfix = primary ( "[" expr "]" )*
+// postfix = primary ( ( "[" expr "]" )* | "." ident )
 Node *postfix() {
     Node *node = primary();
 
@@ -660,7 +714,35 @@ Node *postfix() {
         node = new_node_deref(new_add(node, idx));
     }
 
+    if (consume(".")) {
+        // access struct member
+        char *ident = expect_ident();
+        node = struct_ref(node, ident);
+    }
+
     return node;
+}
+
+Node *struct_ref(Node *node, char *ident) {
+    check_type(node);
+    if (node->type->kind != TY_STRUCT)
+        error("not struct");
+
+    Node *n = calloc(1, sizeof(Node));
+    n->kind = ND_MEMBER;
+    n->lhs = node;
+    n->member = get_struct_member(node->type, ident);
+
+    return n;
+}
+
+Member *get_struct_member(Type *type, char *name) {
+    for (Member *m=type->members; m; m=m->next) {
+        if (strcmp(m->name, name) == 0)
+            return m;
+    }
+
+    error("no such member");
 }
 
 // primary = '(' '{' stmt ( stmt )* '}' ')' // last stmt should be expr_stmt

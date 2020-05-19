@@ -43,9 +43,11 @@ typedef enum {
     TY_INT,
     TY_PTR,
     TY_ARR,
+    TY_STRUCT,
 } Typekind;
 
 typedef struct Type Type;
+typedef struct Member Member;
 
 struct Type {
     Typekind kind;
@@ -54,6 +56,8 @@ struct Type {
     size_t size_array;
 
     char *name;
+
+    Member *members; // for access struct members
 };
 
 bool consume(char *op);
@@ -94,6 +98,7 @@ typedef enum {
     ND_EXPR_STMT,
     ND_STMT_EXPR,
     ND_COMMA,
+    ND_MEMBER,
     ND_RET,
     ND_STR,
     ND_NUM,
@@ -111,6 +116,13 @@ struct Var {
 
     char *str;
     int lc;
+};
+
+struct Member {
+    Member *next;
+    Type *type;
+    char *name;
+    int offset;
 };
 
 typedef struct Node Node;
@@ -133,6 +145,8 @@ struct Node {
     Node *postop;
 
     Node *blocks; // for ND_BLOCK or ND_STMT_EXPR
+
+    Member *member; // for ND_MEMBER
 
     char *funcname;
     Node *args;

@@ -112,7 +112,7 @@ char *is_reserved(char *c) {
 }
 
 char *is_type(char *c) {
-    char *tw[] = {"int", "char"};
+    char *tw[] = {"int", "char", "struct"};
     for (int i=0; i<sizeof(tw)/sizeof(*tw); i++) {
         int len = strlen(tw[i]);
         if (strncmp(c, tw[i], len) == 0 && !is_alnum(c[len]))
@@ -222,7 +222,7 @@ void tokenize() {
             continue;
         }
 
-        if (strchr("+-*/(){}[]><=,;&*", *p)) {
+        if (strchr("+-*/(){}[]><=,.;&*", *p)) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
         }
