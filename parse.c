@@ -704,7 +704,7 @@ Node *unary() {
     return postfix();
 }
 
-// postfix = primary ( ( "[" expr "]" )* | "." ident )
+// postfix = primary ( ( "[" expr "]" )* | ( "." ident )* )
 Node *postfix() {
     Node *node = primary();
 
@@ -714,7 +714,7 @@ Node *postfix() {
         node = new_node_deref(new_add(node, idx));
     }
 
-    if (consume(".")) {
+    while (consume(".")) {
         // access struct member
         char *ident = expect_ident();
         node = struct_ref(node, ident);
