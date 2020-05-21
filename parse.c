@@ -704,23 +704,27 @@ Node *unary() {
     return postfix();
 }
 
-// postfix = primary ( ( "[" expr "]" )* | ( "." ident )* )
+// postfix = primary ( ( "[" expr "]" ) | ( "." ident ) )*
 Node *postfix() {
     Node *node = primary();
 
-    while (consume("[")) {
-        Node *idx = expr();
-        expect("]");
-        node = new_node_deref(new_add(node, idx));
-    }
+    while (1) {
+        if (consume("[")) {
+            Node *idx = expr();
+            expect("]");
+            node = new_node_deref(new_add(node, idx));
+            continue;
+        }
 
-    while (consume(".")) {
-        // access struct member
-        char *ident = expect_ident();
-        node = struct_ref(node, ident);
-    }
+        if (consume(".")) {
+            // access struct member
+            char *ident = expect_ident();
+            node = struct_ref(node, ident);
+            continue;
+        }
 
-    return node;
+        return node;
+    }
 }
 
 Node *struct_ref(Node *node, char *ident) {
