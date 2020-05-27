@@ -230,6 +230,17 @@ Var *new_str(Token *token) {
     return string;
 }
 
+Tag *tags;
+
+Tag *find_tag(Token *tok) {
+    for (Tag *tag=tags; tag; tag=tag->next) {
+        if (strlen(tag->name) == tok->len && !strncmp(tok->str, tag->name, tok->len))
+            return tag;
+    }
+
+    return NULL;
+}
+
 Function *code;
 
 void program();
@@ -273,6 +284,7 @@ void program() {
         char *name = expect_ident();
 
         locals = NULL;
+        tags = NULL;
         if (peek("(")) {
             cur->next = function(ty, name);
             cur = cur->next;
@@ -543,8 +555,39 @@ Type *type_suffix(Type *ty) {
     return ty;
 }
 
-// struct_decl = "{" struct_member*
+// struct_decl = ident | ident "{" struct_member* | "{" struct_member*
 Type *struct_decl() {
+    Token *tok = consume_ident();
+    if (tok) {
+        Tag *tag = calloc(1, sizeof(Tag));
+
+        if (consume("{")) {
+            Type *type = calloc(1, sizeof(Type));
+            type->kind = TY_STRUCT;
+            type->members = struct_members();
+
+            int offset = 0;
+            for (Member *m=type->members; m; m=m->next) {
+                m->offset = offset;
+                offset += m->type->size;
+            }
+            type->size = offset;
+
+            tag->name = strndup(tok->str, tok->len);
+            tag->type = type;
+            tag->next = tags;
+            tags = tag;
+
+            return type;
+        } else {
+            tag = find_tag(tok);
+            if (!tag)
+                error_at(token->str, "unknown tag name");
+
+            return tag->type;
+        }
+    }
+
     expect("{");
 
     Type *type = calloc(1, sizeof(Type));

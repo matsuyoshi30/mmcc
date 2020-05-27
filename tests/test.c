@@ -181,6 +181,11 @@ int main() {
     assert(3, ({ struct { int m; struct { int n; } b; } a; a.m=1; a.b.n=2; a.m+a.b.n; }), "{ struct { int m; struct { int n; } b; } a; a.m=1; a.b.n=2; a.m+a.b.n; }");
     assert(8, ({ struct { int m; struct { int n; } b; } a; sizeof(a); }), "{ struct { int m; struct { int n; } b; } a; sizeof(a); }");
 
+    assert(8, ({ struct t { int a; int b; } x; struct t y; sizeof(y); }), "{ struct t { int a; int b; } x; struct t y; sizeof(y); }");
+    assert(8, ({ struct t { int a; int b; }; struct t y; sizeof(y); }), "{ struct t { int a; int b; }; struct t y; sizeof(y); }");
+    assert(32, ({ struct t { int a[3]; int b[5]; } x; struct t y; sizeof(y); }), "{ struct { int a[3]; int b[5]; } x; struct t y; sizeof(y); }");
+    assert(6, ({ struct t { int a[3]; int b[5]; } x; struct t y; int *p=&y; y.a[0]=6; p[0]; }), "{ struct { int a[3]; int b[5]; } x; struct t y; int *p=&y; y.a[0]=6; p[0]; }");
+
     printf("OK\n");
     return 0;
 }

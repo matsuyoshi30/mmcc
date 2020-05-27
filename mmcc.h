@@ -118,6 +118,14 @@ struct Var {
     int lc;
 };
 
+typedef struct Tag Tag;
+
+struct Tag {
+    Tag *next;
+    char *name;
+    Type *type;
+};
+
 struct Member {
     Member *next;
     Type *type;
@@ -166,6 +174,7 @@ struct Function {
 extern Var *locals;
 extern Var *globals;
 extern Var *strs;
+extern Tag *tags;
 extern Function *code;
 
 void program();
