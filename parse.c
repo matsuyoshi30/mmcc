@@ -171,7 +171,7 @@ Node *new_sub(Node *lhs, Node *rhs) {
     return new_node(ND_SUB, lhs, rhs);
 }
 
-int var_scope_depth;
+int scope_depth;
 
 VarScope *varscope;
 
@@ -191,7 +191,7 @@ Var *new_params(Type *type, char *name) {
     var->type = type;
     var->name = name;
     var->is_local = true;
-    push_varscope(var, var_scope_depth);
+    push_varscope(var, scope_depth);
 
     return var;
 }
@@ -203,7 +203,7 @@ Var *new_lvar(Type *type, char *name) {
     var->is_local = true;
     var->next = locals;
     locals = var;
-    push_varscope(var, var_scope_depth);
+    push_varscope(var, scope_depth);
 
     return var;
 }
@@ -215,7 +215,7 @@ Var *new_gvar(Type *type, char *name) {
     var->is_local = false;
     var->next = globals;
     globals = var;
-    push_varscope(var, var_scope_depth);
+    push_varscope(var, scope_depth);
 
     return var;
 }
@@ -241,8 +241,6 @@ Var *new_str(Token *token) {
     return string;
 }
 
-int tag_scope_depth;
-
 TagScope *tagscope;
 
 void push_tagscope(Tag *tag, int depth) {
@@ -265,17 +263,16 @@ Tag *find_tag(Token *tok) {
 }
 
 void enter_scope() {
-    var_scope_depth++;
-    tag_scope_depth++;
+    scope_depth++;
 }
 
 void leave_scope() {
-    var_scope_depth--;
-    while (varscope && varscope->depth > var_scope_depth)
+    scope_depth--;
+
+    while (varscope && varscope->depth > scope_depth)
         varscope = varscope->next;
 
-    tag_scope_depth--;
-    while (tagscope && tagscope->depth > tag_scope_depth)
+    while (tagscope && tagscope->depth > scope_depth)
         tagscope = tagscope->next;
 }
 
@@ -314,8 +311,7 @@ void program() {
 
     strs = NULL;
     globals = calloc(1, sizeof(Var));
-    var_scope_depth = 0;
-    tag_scope_depth = 0;
+    scope_depth = 0;
 
     while (!at_eof()) {
         Type *ty = basetype();
@@ -622,7 +618,7 @@ Type *struct_decl() {
             tag->type = type;
             tag->next = tags;
             tags = tag;
-            push_tagscope(tags, tag_scope_depth);
+            push_tagscope(tags, scope_depth);
 
             return type;
         } else {
