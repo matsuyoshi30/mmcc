@@ -171,6 +171,18 @@ Node *new_sub(Node *lhs, Node *rhs) {
     return new_node(ND_SUB, lhs, rhs);
 }
 
+int var_scope_depth;
+
+VarScope *varscope;
+
+void push_varscope(Var *var, int depth) {
+    VarScope *v = calloc(1, sizeof(VarScope));
+    v->var = var;
+    v->depth = depth;
+    v->next = varscope;
+    varscope = v;
+}
+
 Var *locals;
 Var *globals;
 
@@ -179,6 +191,7 @@ Var *new_params(Type *type, char *name) {
     var->type = type;
     var->name = name;
     var->is_local = true;
+    push_varscope(var, var_scope_depth);
 
     return var;
 }
@@ -190,6 +203,7 @@ Var *new_lvar(Type *type, char *name) {
     var->is_local = true;
     var->next = locals;
     locals = var;
+    push_varscope(var, var_scope_depth);
 
     return var;
 }
@@ -201,18 +215,15 @@ Var *new_gvar(Type *type, char *name) {
     var->is_local = false;
     var->next = globals;
     globals = var;
+    push_varscope(var, var_scope_depth);
 
     return var;
 }
 
 Var *find_var(Token *tok) {
-    for (Var *lvar=locals; lvar; lvar=lvar->next)
-        if (strlen(lvar->name) == tok->len && !strncmp(tok->str, lvar->name, tok->len))
-            return lvar;
-
-    for (Var *gvar=globals; gvar; gvar=gvar->next)
-        if (strlen(gvar->name) == tok->len && !strncmp(tok->str, gvar->name, tok->len))
-            return gvar;
+    for (VarScope *vs=varscope; vs; vs=vs->next)
+        if (strlen(vs->var->name) == tok->len && !strncmp(tok->str, vs->var->name, tok->len))
+            return vs->var;
 
     return NULL;
 }
@@ -230,15 +241,42 @@ Var *new_str(Token *token) {
     return string;
 }
 
+int tag_scope_depth;
+
+TagScope *tagscope;
+
+void push_tagscope(Tag *tag, int depth) {
+    TagScope *t = calloc(1, sizeof(TagScope));
+    t->tag = tag;
+    t->depth = depth;
+    t->next = tagscope;
+    tagscope = t;
+}
+
 Tag *tags;
 
 Tag *find_tag(Token *tok) {
-    for (Tag *tag=tags; tag; tag=tag->next) {
-        if (strlen(tag->name) == tok->len && !strncmp(tok->str, tag->name, tok->len))
-            return tag;
+    for (TagScope *ts=tagscope; ts; ts=ts->next) {
+        if (strlen(ts->tag->name) == tok->len && !strncmp(tok->str, ts->tag->name, tok->len))
+            return ts->tag;
     }
 
     return NULL;
+}
+
+void enter_scope() {
+    var_scope_depth++;
+    tag_scope_depth++;
+}
+
+void leave_scope() {
+    var_scope_depth--;
+    while (varscope && varscope->depth > var_scope_depth)
+        varscope = varscope->next;
+
+    tag_scope_depth--;
+    while (tagscope && tagscope->depth > tag_scope_depth)
+        tagscope = tagscope->next;
 }
 
 Function *code;
@@ -276,6 +314,8 @@ void program() {
 
     strs = NULL;
     globals = calloc(1, sizeof(Var));
+    var_scope_depth = 0;
+    tag_scope_depth = 0;
 
     while (!at_eof()) {
         Type *ty = basetype();
@@ -376,6 +416,8 @@ Node *stmt() {
         head.next = NULL;
         Node *cur = &head;
 
+        enter_scope();
+
         node = calloc(1, sizeof(Node));
         node->kind = ND_BLOCK;
         while (!consume("}")) {
@@ -384,6 +426,9 @@ Node *stmt() {
             cur = cur->next;
         }
         node->blocks = head.next;
+
+        leave_scope();
+
         return node;
     }
 
@@ -577,6 +622,7 @@ Type *struct_decl() {
             tag->type = type;
             tag->next = tags;
             tags = tag;
+            push_tagscope(tags, tag_scope_depth);
 
             return type;
         } else {

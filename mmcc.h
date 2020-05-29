@@ -118,12 +118,28 @@ struct Var {
     int lc;
 };
 
+typedef struct VarScope VarScope;
+
+struct VarScope {
+    VarScope *next;
+    int depth;
+    Var *var;
+};
+
 typedef struct Tag Tag;
 
 struct Tag {
     Tag *next;
     char *name;
     Type *type;
+};
+
+typedef struct TagScope TagScope;
+
+struct TagScope {
+    TagScope *next;
+    int depth;
+    Tag *tag;
 };
 
 struct Member {
