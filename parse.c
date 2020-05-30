@@ -789,7 +789,7 @@ Node *unary() {
     return postfix();
 }
 
-// postfix = primary ( ( "[" expr "]" ) | ( "." ident ) )*
+// postfix = primary ( ( "[" expr "]" ) | ( "." ident ) | ( "->" ident ) )*
 Node *postfix() {
     Node *node = primary();
 
@@ -805,6 +805,13 @@ Node *postfix() {
             // access struct member
             char *ident = expect_ident();
             node = struct_ref(node, ident);
+            continue;
+        }
+
+        if (consume("->")) {
+            // b->n => (*b).n
+            char *ident = expect_ident();
+            node = struct_ref(new_node_deref(node), ident);
             continue;
         }
 

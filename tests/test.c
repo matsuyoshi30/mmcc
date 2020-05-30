@@ -191,6 +191,10 @@ int main() {
     assert(4, ({ struct t { int a; } x; { struct t { char c; } y; } sizeof(x); }), "{ struct t { int a; } x; struct t { char c; } y; } sizeof(x); }");
     assert(3, ({ struct t { int a; } x; int t=1; struct t y; y.a=2; t+y.a; }), "{ struct t { int a; } x; int t=1; struct t y; y.a=2; t+y.a; }");
 
+    assert(1, ({ struct t { int n; } a; struct t *b=&a; b->n=1; b->n; }), "{ struct t { int n; } a; struct t *b=&a; b->n=1; b->n; }");
+    assert(1, ({ struct t { int n; } a; struct t *b=&a; b->n=1; a.n; }), "{ struct t { int n; } a; struct t *b=&a; b->n=1; a.n; }");
+    assert(1, ({ struct t { int n; } a; struct t *b=&a; a.n=1; b->n; }), "{ struct t { int n; } a; struct t *b=&a; a.n=1; b->n; }");
+
     printf("OK\n");
     return 0;
 }
