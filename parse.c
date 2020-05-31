@@ -545,7 +545,7 @@ Node *typedefs() {
     return node;
 }
 
-// declaration = basetype declarator ( "=" expr )? ( "," declarator ( "=" expr )? )? ";"
+// declaration = basetype declarator ( "=" expr )? ( "," declarator ( "=" expr )? )* ";"
 Node *declaration() {
     Node head;
     head.next = NULL;
