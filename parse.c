@@ -528,16 +528,14 @@ Node *stmt() {
     return node;
 }
 
-// typedefs = "typedef" basetype ident ( type_suffix )? ";"
+// typedefs = "typedef" basetype declarator ";"
 Node *typedefs() {
     expect("typedef");
 
-    Type *type = basetype();
-    Token *tok = consume_ident();
-    type = type_suffix(type);
+    Type *base = basetype();
+    Type *type = declarator(base);
 
-    char *name = strndup(tok->str, tok->len);
-    push_varscope(name)->def_type = type;
+    push_varscope(type->name)->def_type = type;
 
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_BLOCK;
