@@ -203,6 +203,7 @@ int main() {
     assert(2, ({ GInt x=2; x; }), "{ GInt x=2; x; }");
     assert(3, ({ GStruct x; x.a=1; x.b=2; x.a+x.b; }), "{ GStruct x; x.a=1; x.b=2; x.a+x.b; }");
     assert(3, ({ typedef int t; t t=3; t; }), "{ typedef int t; t t=3; t; }");
+    assert(5, ({ typedef int a, b; a x=3; b y=2; x+y; }), "{ typedef int a, b; a x=3; b y=2; x+y; }");
 
     printf("OK\n");
     return 0;

@@ -528,19 +528,25 @@ Node *stmt() {
     return node;
 }
 
-// typedefs = "typedef" basetype declarator ";"
+// typedefs = "typedef" basetype declarator ( "," declarator ) ";"
 Node *typedefs() {
     expect("typedef");
 
     Type *base = basetype();
-    Type *type = declarator(base);
 
-    push_varscope(type->name)->def_type = type;
+    int num = 0;
+    while (!consume(";")) {
+        if (num > 0)
+            expect(",");
+
+        Type *type = declarator(base);
+        push_varscope(type->name)->def_type = type;
+
+        num++;
+    }
 
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_BLOCK;
-
-    expect(";");
 
     return node;
 }
