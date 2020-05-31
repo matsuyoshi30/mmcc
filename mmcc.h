@@ -19,7 +19,6 @@ void nop();
 typedef enum {
     TK_RESERVED,
     TK_IDENT,
-    TK_TYPE,
     TK_STR,
     TK_NUM,
     TK_EOF,
@@ -64,10 +63,8 @@ bool consume(char *op);
 bool peek(char *op);
 Token *consume_ident();
 Token *consume_str();
-Type *consume_type();
 void expect(char *op);
 int expect_number();
-char *expect_type();
 char *expect_ident();
 bool at_eof();
 
@@ -124,6 +121,8 @@ struct VarScope {
     VarScope *next;
     int depth;
     Var *var;
+    char *name;
+    Type *def_type;
 };
 
 typedef struct Tag Tag;

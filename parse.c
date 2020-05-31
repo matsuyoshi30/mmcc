@@ -175,12 +175,14 @@ int scope_depth;
 
 VarScope *varscope;
 
-void push_varscope(Var *var, int depth) {
+VarScope *push_varscope(char *name) {
     VarScope *v = calloc(1, sizeof(VarScope));
-    v->var = var;
-    v->depth = depth;
+    v->name = name;
+    v->depth = scope_depth;
     v->next = varscope;
     varscope = v;
+
+    return v;
 }
 
 Var *locals;
@@ -191,7 +193,7 @@ Var *new_params(Type *type, char *name) {
     var->type = type;
     var->name = name;
     var->is_local = true;
-    push_varscope(var, scope_depth);
+    push_varscope(name)->var = var;
 
     return var;
 }
@@ -203,7 +205,7 @@ Var *new_lvar(Type *type, char *name) {
     var->is_local = true;
     var->next = locals;
     locals = var;
-    push_varscope(var, scope_depth);
+    push_varscope(name)->var = var;
 
     return var;
 }
@@ -215,15 +217,25 @@ Var *new_gvar(Type *type, char *name) {
     var->is_local = false;
     var->next = globals;
     globals = var;
-    push_varscope(var, scope_depth);
+    push_varscope(name)->var = var;
 
     return var;
 }
 
 Var *find_var(Token *tok) {
     for (VarScope *vs=varscope; vs; vs=vs->next)
-        if (strlen(vs->var->name) == tok->len && !strncmp(tok->str, vs->var->name, tok->len))
+        if (strlen(vs->name) == tok->len && !strncmp(tok->str, vs->name, tok->len))
             return vs->var;
+
+    return NULL;
+}
+
+Type *find_type(Token *tok) {
+    if (tok->kind == TK_IDENT) {
+        for (VarScope *vs=varscope; vs; vs=vs->next)
+            if (strlen(vs->name) == tok->len && !strncmp(tok->str, vs->name, tok->len))
+                return vs->def_type;
+    }
 
     return NULL;
 }
@@ -243,10 +255,10 @@ Var *new_str(Token *token) {
 
 TagScope *tagscope;
 
-void push_tagscope(Tag *tag, int depth) {
+void push_tagscope(Tag *tag) {
     TagScope *t = calloc(1, sizeof(TagScope));
     t->tag = tag;
-    t->depth = depth;
+    t->depth = scope_depth;
     t->next = tagscope;
     tagscope = t;
 }
@@ -282,7 +294,9 @@ void program();
 Function *function(Type *type, char *funcname);
 Var *funcparams();
 Node *stmt();
+Node *typedefs();
 Node *declaration();
+bool is_typename();
 Type *basetype();
 Type *declarator(Type *basetype);
 Type *type_suffix(Type *ty);
@@ -314,20 +328,24 @@ void program() {
     scope_depth = 0;
 
     while (!at_eof()) {
-        Type *ty = basetype();
-        while (consume("*"))
-            ty = pointer_to(ty);
-        char *name = expect_ident();
-
-        locals = NULL;
-        tags = NULL;
-        if (peek("(")) {
-            cur->next = function(ty, name);
-            cur = cur->next;
+        if (peek("typedef")) {
+            typedefs();
         } else {
-            ty = type_suffix(ty);
-            new_gvar(ty, name);
-            expect(";");
+            Type *ty = basetype();
+            while (consume("*"))
+                ty = pointer_to(ty);
+            char *name = expect_ident();
+
+            locals = NULL;
+            tags = NULL;
+            if (peek("(")) {
+                cur->next = function(ty, name);
+                cur = cur->next;
+            } else {
+                ty = type_suffix(ty);
+                new_gvar(ty, name);
+                expect(";");
+            }
         }
     }
 
@@ -493,13 +511,37 @@ Node *stmt() {
         return node;
     }
 
-    if (peek("int") || peek("char") || peek("struct")) {
+    if (peek("typedef")) {
+        node = typedefs();
+        return node;
+    }
+
+    if (is_typename()) {
         node = declaration();
         check_type(node);
         return node;
     }
 
     node = expr_stmt();
+    expect(";");
+
+    return node;
+}
+
+// typedefs = "typedef" basetype ident ( type_suffix )? ";"
+Node *typedefs() {
+    expect("typedef");
+
+    Type *type = basetype();
+    Token *tok = consume_ident();
+    type = type_suffix(type);
+
+    char *name = strndup(tok->str, tok->len);
+    push_varscope(name)->def_type = type;
+
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_BLOCK;
+
     expect(";");
 
     return node;
@@ -547,15 +589,29 @@ Node *declaration() {
     return node;
 }
 
-// basetype = "int" | "char" | struct_decl
+// is_typename = "int" | "char" | "struct" | typedef_name
+bool is_typename() {
+    if (peek("int") || peek("char") || peek("struct") || find_type(token))
+        return true;
+
+    return false;
+}
+
+// basetype = is_typename | typedef_name
 Type *basetype() {
-    char *tw = expect_type();
-    if (strcmp(tw, "int") == 0)
+    if (!is_typename())
+        error_at(token->str, "expected typename");
+
+    if (consume("int"))
         return int_type;
-    if (strcmp(tw, "char") == 0)
+    if (consume("char"))
         return char_type;
-    if (strcmp(tw, "struct") == 0)
+    if (consume("struct"))
         return struct_decl();
+
+    Token *tok = consume_ident();
+    if (tok)
+        return find_type(tok);
 
     return NULL;
 }
@@ -618,7 +674,7 @@ Type *struct_decl() {
             tag->type = type;
             tag->next = tags;
             tags = tag;
-            push_tagscope(tags, scope_depth);
+            push_tagscope(tags);
 
             return type;
         } else {

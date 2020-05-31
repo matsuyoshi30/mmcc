@@ -53,15 +53,6 @@ int expect_number() {
     return val;
 }
 
-// expect the current token if it is type word
-char *expect_type() {
-    if (token->kind != TK_TYPE)
-        error_at(token->str, "expected type word\n");
-    char *typeword = strndup(token->str, token->len);
-    token = token->next;
-    return typeword;
-}
-
 // check whether the current token is ident
 char *expect_ident() {
     if (token->kind != TK_IDENT)
@@ -94,7 +85,7 @@ bool is_alnum(char c) {
 }
 
 char *is_reserved(char *c) {
-    char *kw[] = {"return", "if", "else", "while", "for", "sizeof"};
+    char *kw[] = {"return", "if", "else", "while", "for", "sizeof", "typedef"};
     for (int i=0; i<sizeof(kw)/sizeof(*kw); i++) {
         int len = strlen(kw[i]);
         if (strncmp(c, kw[i], len) == 0 && !is_alnum(c[len]))
@@ -204,7 +195,7 @@ void tokenize() {
 
         char *typeword = is_type(p);
         if (typeword) {
-            cur = new_token(TK_TYPE, cur, p, strlen(typeword));
+            cur = new_token(TK_RESERVED, cur, p, strlen(typeword));
             p += strlen(typeword);
             continue;
         }

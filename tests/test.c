@@ -31,6 +31,9 @@ int g1;
 int g2[4];
 int *g3;
 
+typedef int GInt;
+typedef struct { int a; int b; } GStruct;
+
 int main() {
     assert(0, 0, "0");
     assert(42, 42, "42");
@@ -194,6 +197,12 @@ int main() {
     assert(1, ({ struct t { int n; } a; struct t *b=&a; b->n=1; b->n; }), "{ struct t { int n; } a; struct t *b=&a; b->n=1; b->n; }");
     assert(1, ({ struct t { int n; } a; struct t *b=&a; b->n=1; a.n; }), "{ struct t { int n; } a; struct t *b=&a; b->n=1; a.n; }");
     assert(1, ({ struct t { int n; } a; struct t *b=&a; a.n=1; b->n; }), "{ struct t { int n; } a; struct t *b=&a; a.n=1; b->n; }");
+
+    assert(1, ({ typedef int MyInt; MyInt x=1; x; }), "{ typedef MyInt int; MyInt x=1; x; }");
+    assert(1, ({ typedef struct { int n; } MyStruct; MyStruct x; x.n=1; x.n; }), "{ typedef struct { int n; } MyStruct; MyStruct x; x.n=1; x.n; }");
+    assert(2, ({ GInt x=2; x; }), "{ GInt x=2; x; }");
+    assert(3, ({ GStruct x; x.a=1; x.b=2; x.a+x.b; }), "{ GStruct x; x.a=1; x.b=2; x.a+x.b; }");
+    assert(3, ({ typedef int t; t t=3; t; }), "{ typedef int t; t t=3; t; }");
 
     printf("OK\n");
     return 0;
