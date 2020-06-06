@@ -352,7 +352,7 @@ void program() {
     code = head.next;
 }
 
-// function = "(" funcparams* ")" "{" stmt* "}"
+// function = "(" funcparams* ")" ( "{" stmt* "}" | ";" )
 Function *function(Type *type, char *funcname) {
     Function *func = calloc(1, sizeof(Function));
 
@@ -360,6 +360,15 @@ Function *function(Type *type, char *funcname) {
 
     locals = funcparams();
     func->params = locals;
+
+    func->type = type;
+    func->name = funcname;
+
+    if (consume(";")) {
+        func->locals = locals;
+
+        return func;
+    }
 
     expect("{");
 
@@ -372,8 +381,6 @@ Function *function(Type *type, char *funcname) {
         cur = cur->next;
     }
 
-    func->type = type;
-    func->name = funcname;
     func->locals = locals;
     func->body = head.next;
 

@@ -31,6 +31,8 @@ int g1;
 int g2[4];
 int *g3;
 
+int f();
+
 typedef int GInt;
 typedef struct { int a; int b; } GStruct;
 
