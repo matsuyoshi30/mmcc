@@ -166,8 +166,10 @@ void gen_expr(Node *node) {
 void gen_stmt(Node *node) {
     switch (node->kind) {
     case ND_RET:
-        gen_expr(node->lhs);
-        printf("  pop rax\n");
+        if (node->lhs) {
+            gen_expr(node->lhs);
+            printf("  pop rax\n");
+        }
         printf("  jmp .Lreturn.%s\n", funcname);
         return;
     case ND_BLOCK:

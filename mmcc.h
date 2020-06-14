@@ -38,6 +38,7 @@ struct Token {
 extern Token *token;
 
 typedef enum {
+    TY_VOID,
     TY_CHAR,
     TY_INT,
     TY_PTR,

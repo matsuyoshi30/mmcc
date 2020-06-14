@@ -1,5 +1,6 @@
 #include "mmcc.h"
 
+Type *void_type = &(Type){TY_VOID};
 Type *char_type = &(Type){TY_CHAR, 1};
 Type *int_type = &(Type){TY_INT, 4};
 
@@ -414,7 +415,7 @@ Var *funcparams() {
     return head.next;
 }
 
-// stmt = "return" expr ";"
+// stmt = "return" expr? ";"
 //        | "{" stmt* "}"
 //        | "if" "(" expr ")" stmt ( "else" stmt )?
 //        | "while" "(" expr ")" stmt
@@ -427,6 +428,8 @@ Node *stmt() {
     if (consume("return")) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_RET;
+        if (consume(";"))
+            return node;
         node->lhs = expr();
         expect(";");
         return node;
@@ -602,7 +605,7 @@ Node *declaration() {
 
 // is_typename = "int" | "char" | "struct" | typedef_name
 bool is_typename() {
-    if (peek("int") || peek("char") || peek("struct") || find_type(token))
+    if (peek("int") || peek("char") || peek("struct") || peek("void") || find_type(token))
         return true;
 
     return false;
@@ -613,6 +616,8 @@ Type *basetype() {
     if (!is_typename())
         error_at(token->str, "expected typename");
 
+    if (consume("void"))
+        return void_type;
     if (consume("int"))
         return int_type;
     if (consume("char"))

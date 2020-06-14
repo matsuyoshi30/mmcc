@@ -27,6 +27,12 @@ int fib(int num) {
     return fib(num-1) + fib(num-2);
 }
 
+void testFunc4(int a) {
+    if (a != 5)
+        printf("testFunc4\n");
+    return;
+}
+
 int g1;
 int g2[4];
 int *g3;
@@ -206,6 +212,8 @@ int main() {
     assert(3, ({ GStruct x; x.a=1; x.b=2; x.a+x.b; }), "{ GStruct x; x.a=1; x.b=2; x.a+x.b; }");
     assert(3, ({ typedef int t; t t=3; t; }), "{ typedef int t; t t=3; t; }");
     assert(5, ({ typedef int a, b; a x=3; b y=2; x+y; }), "{ typedef int a, b; a x=3; b y=2; x+y; }");
+
+    printf("void test passed\n", testFunc4(5));
 
     printf("OK\n");
     return 0;
