@@ -215,6 +215,10 @@ int main() {
 
     printf("void test passed\n", testFunc4(5));
 
+    assert(97, 'a', "'a'");
+    assert(10, '\n', "'\\n'");
+    assert(4, ({ sizeof('a'); }), "{ sizeof('a'); }");
+
     printf("OK\n");
     return 0;
 }

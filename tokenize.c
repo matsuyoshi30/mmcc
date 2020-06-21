@@ -224,6 +224,27 @@ void tokenize() {
             continue;
         }
 
+        if (*p == '\'') {
+            char *start = p + 1;
+
+            char c;
+            if (*start == '\\') {
+                c = is_escape(start+1);
+                start += 2;
+            } else {
+                c = *start++;
+            }
+
+            if (*start != '\'')
+                error_at(p, "unclosed char");
+
+            cur = new_token(TK_NUM, cur, p, 0);
+            cur->val = c;
+            cur->len = start - p;
+            p += cur->len+1;
+            continue;
+        }
+
         if (*p == '"') {
             char *start = p + 1;
             char *end = start;
