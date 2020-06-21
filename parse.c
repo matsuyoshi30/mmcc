@@ -3,6 +3,7 @@
 Type *void_type = &(Type){TY_VOID};
 Type *char_type = &(Type){TY_CHAR, 1};
 Type *int_type = &(Type){TY_INT, 4};
+Type *enum_type = &(Type){TY_ENUM, 4};
 
 static int lc = 0;
 
@@ -303,6 +304,7 @@ Type *declarator(Type *basetype);
 Type *type_suffix(Type *ty);
 Member *struct_members();
 Type *struct_decl();
+Type *enum_decl();
 Node *expr_stmt();
 Node *expr();
 Node *assign();
@@ -605,7 +607,7 @@ Node *declaration() {
 
 // is_typename = "int" | "char" | "struct" | typedef_name
 bool is_typename() {
-    if (peek("int") || peek("char") || peek("struct") || peek("void") || find_type(token))
+    if (peek("int") || peek("char") || peek("struct") || peek("void") || find_type(token) || peek("enum"))
         return true;
 
     return false;
@@ -624,6 +626,8 @@ Type *basetype() {
         return char_type;
     if (consume("struct"))
         return struct_decl();
+    if (consume("enum"))
+        return enum_decl();
 
     Token *tok = consume_ident();
     if (tok)
@@ -743,6 +747,55 @@ Member *struct_members() {
     }
 
     return head.next;
+}
+
+// enum_decl = ident? "{" enum-list* "}"
+// enum-list = ident ( "=" num )? ( "," ident ( "=" num)? )*
+Type *enum_decl() {
+    Token *tok = consume_ident();
+
+    Tag *tag = calloc(1, sizeof(Tag));
+    if (tok) {
+        if (!peek("{")) {
+            tag = find_tag(tok);
+            if (!tag)
+                error_at(token->str, "unknown tag name");
+            if (tag->type->kind != TY_ENUM)
+                error_at(token->str, "not enum type");
+            return tag->type;
+        }
+    }
+
+    expect("{");
+
+    // read enum-list
+    int num = 0;
+    int val = 0;
+    while (!consume("}")) {
+        if (num > 0)
+            expect(",");
+
+        char *name = expect_ident();
+        Var *var = new_lvar(enum_type, name);
+        var->offset = locals->offset + var->type->size;
+
+        if (consume("=")) {
+            val = expect_number();
+        }
+
+        var->enum_val = val++;
+        num++;
+    }
+
+    if (tok) {
+        tag->name = strndup(tok->str, tok->len);
+        tag->type = enum_type;
+        tag->next = tags;
+        tags = tag;
+        push_tagscope(tags);
+    }
+
+    return enum_type;
 }
 
 // expr_stmt = expr
@@ -946,7 +999,12 @@ Node *primary() {
         if (consume("(")) {
             return new_node_func(strndup(tok->str, tok->len), funcargs());
         } else {
-            Node *node =  new_node_var(find_var(tok));
+            Var *var = find_var(tok);
+            if (var->type->kind == TY_ENUM) {
+                return new_node_num(var->enum_val);
+            }
+
+            Node *node =  new_node_var(var);
             Node *rhs = calloc(1, sizeof(Node));
             if (consume("++")) {
                 rhs->kind = ND_ADD;

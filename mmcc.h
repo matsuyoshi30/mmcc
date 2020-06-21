@@ -44,6 +44,7 @@ typedef enum {
     TY_PTR,
     TY_ARR,
     TY_STRUCT,
+    TY_ENUM,
 } Typekind;
 
 typedef struct Type Type;
@@ -114,6 +115,8 @@ struct Var {
 
     char *str;
     int lc;
+
+    int enum_val; // for enum
 };
 
 typedef struct VarScope VarScope;
