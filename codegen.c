@@ -66,6 +66,16 @@ void gen_expr(Node *node) {
         if (node->type->kind != TY_ARR)
             load(node->type);
         return;
+    case ND_NOT:
+        gen_expr(node->lhs);
+        // lhs: true     -> al: false
+        // lhs: false(0) -> al: true
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  sete al\n");
+        printf("  movzb rax, al\n");
+        printf("  push rax\n");
+        return;
     case ND_FUNC: {
         int num_of_args = 0;
         for (Node *arg=node->args; arg; arg=arg->next) {

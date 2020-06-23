@@ -89,6 +89,7 @@ typedef enum {
     ND_LV, // local variable
     ND_ADDR,  // &
     ND_DEREF, // *
+    ND_NOT,   // !
     ND_IF,
     ND_WHILE,
     ND_FOR,

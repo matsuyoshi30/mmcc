@@ -228,6 +228,10 @@ int main() {
     assert(4, ({ enum { zero, one, two } x; sizeof(x); }), "({ enum { zero, one, two } x; sizeof(x); })");
     assert(4, ({ enum t { zero, one, two }; enum t x; sizeof(x); }), "({ enum t { zero, one, two }; enum t x; sizeof(x); })");
 
+    assert(0, !1, "!1");
+    assert(0, !2, "!2");
+    assert(1, !0, "!0");
+
     printf("OK\n");
     return 0;
 }

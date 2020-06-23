@@ -113,6 +113,13 @@ Node *new_node_deref(Node *target) {
     return node;
 }
 
+Node *new_node_not(Node *target) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_NOT;
+    node->lhs = target;
+    return node;
+}
+
 Node *new_node_func(char *funcname, Node *args) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_FUNC;
@@ -894,7 +901,9 @@ Node *mul() {
     }
 }
 
-// unary = ( '+' | '-' )? primary | ( '&' | '*' )? unary | "sizeof" unary | postfix
+// unary = ( '+' | '-' )? primary
+//         | ( '&' | '*' | '!' )? unary | "sizeof" unary
+//         | postfix
 Node *unary() {
     if (consume("+"))
         return unary();
@@ -904,6 +913,8 @@ Node *unary() {
         return new_node_addr(unary());
     if (consume("*"))
         return new_node_deref(unary());
+    if (consume("!"))
+        return new_node_not(unary());
 
     if (consume("sizeof")) {
         Node *node = unary();
