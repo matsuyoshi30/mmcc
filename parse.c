@@ -925,7 +925,22 @@ Node *unary() {
     return postfix();
 }
 
-// postfix = primary ( ( "[" expr "]" ) | ( "." ident ) | ( "->" ident ) )*
+// x++ => tmp = &x, *tmp = *tmp + 1, *tmp - 1
+// x-- => tmp = &x, *tmp = *tmp - 1, *tmp + 1
+Node *postop(Node *node, int val) {
+    check_type(node);
+    Var *tmp = new_lvar(pointer_to(node->type), "");
+
+    Node *e1 = new_node(ND_AS, new_node_var(tmp), new_node_addr(node));
+    Node *e2 = new_node(ND_AS,
+                        new_node_deref(new_node_var(tmp)),
+                        new_node(ND_ADD, new_node_deref(new_node_var(tmp)), new_node_num(val)));
+    Node *e3 = new_add(new_node_deref(new_node_var(tmp)), new_node_num(val*-1));
+
+    return new_node(ND_COMMA, e1, new_node(ND_COMMA, e2, e3));
+}
+
+// postfix = primary ( ( "[" expr "]" ) | ( "." ident ) | ( "->" ident ) | "++" | "--" )*
 Node *postfix() {
     Node *node = primary();
 
@@ -948,6 +963,16 @@ Node *postfix() {
             // b->n => (*b).n
             char *ident = expect_ident();
             node = struct_ref(new_node_deref(node), ident);
+            continue;
+        }
+
+        if (consume("++")) {
+            node = postop(node, 1);
+            continue;
+        }
+
+        if (consume("--")) {
+            node = postop(node, -1);
             continue;
         }
 
@@ -979,7 +1004,7 @@ Member *get_struct_member(Type *type, char *name) {
 
 // primary = '(' '{' stmt ( stmt )* '}' ')' // last stmt should be expr_stmt
 //         | '(' expr ')'
-//         | ident (( "(" funcargs* )? | ('++' | '--'))
+//         | ident ( "(" funcargs* )?
 //         | num | '"' str '"'
 Node *primary() {
     if (consume("(")) {
@@ -1014,22 +1039,7 @@ Node *primary() {
             if (var->type->kind == TY_ENUM) {
                 return new_node_num(var->enum_val);
             }
-
-            Node *node =  new_node_var(var);
-            Node *rhs = calloc(1, sizeof(Node));
-            if (consume("++")) {
-                rhs->kind = ND_ADD;
-                rhs->lhs = node;
-                rhs->rhs = new_node_num(1);
-                node = new_node(ND_AS, node, rhs);
-            } else if (consume("--")) {
-                rhs->kind = ND_SUB;
-                rhs->lhs = node;
-                rhs->rhs = new_node_num(1);
-                node = new_node(ND_AS, node, rhs);
-            }
-
-            return node;
+            return new_node_var(var);
         }
     }
 
