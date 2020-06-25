@@ -149,11 +149,6 @@ int main() {
     assert(11, ({ "\v"[0]; }), "{ \"\\v\"[0]; }");
     assert(10, ({ "\n"[0]; }), "{ \"\\n\"[0]; }");
 
-    assert(5, ({ int x=2; x+=3; x; }), "{ int x=2; x+=3; x; }");
-    assert(2, ({ int x=3; x-=1; x; }), "{ int x=3; x-=1; x; }");
-    assert(8, ({ int x=4; x*=2; x; }), "{ int x=4; x*=2; x; }");
-    assert(3, ({ int x=6; x/=2; x; }), "{ int x=6; x/=2; x; }");
-
     assert(8, ({ int x=6, y=2; x+y; }), "{ int x=6, y=2; x+y; }");
     assert(7, ({ int x=4, y[2]; y[0]=1; y[1]=3; x+y[1]; }), "{ int x=4, y[2]; y[0]=1; y[1]=3; x+y[1]; }");
 
@@ -236,6 +231,15 @@ int main() {
 
     assert(3, ({ int x=2; ++x; }), "{ int x=2; ++x; }");
     assert(1, ({ int x=2; --x; }), "{ int x=2; --x; }");
+
+    assert(5, ({ int x=2; x+=3; x; }), "{ int x=2; x+=3; x; }");
+    assert(5, ({ int x=2; x+=3; }), "{ int x=2; x+=3; }");
+    assert(2, ({ int x=3; x-=1; x; }), "{ int x=3; x-=1; x; }");
+    assert(2, ({ int x=3; x-=1; }), "{ int x=3; x-=1; }");
+    assert(8, ({ int x=4; x*=2; x; }), "{ int x=4; x*=2; x; }");
+    assert(8, ({ int x=4; x*=2; }), "{ int x=4; x*=2; }");
+    assert(3, ({ int x=6; x/=2; x; }), "{ int x=6; x/=2; x; }");
+    assert(3, ({ int x=6; x/=2; }), "{ int x=6; x/=2; }");
 
     printf("OK\n");
     return 0;

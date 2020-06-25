@@ -823,6 +823,19 @@ Node *expr() {
     return node;
 }
 
+// x += y => tmp = &x, *tmp = *tmp + y
+Node *compound_assign(Node *node, Nodekind kind) {
+    check_type(node);
+    Var *tmp = new_lvar(pointer_to(node->type), "");
+
+    Node *e1 = new_node(ND_AS, new_node_var(tmp), new_node_addr(node));
+    Node *e2 = new_node(ND_AS,
+                        new_node_deref(new_node_var(tmp)),
+                        new_node(kind, new_node_deref(new_node_var(tmp)), assign()));
+
+    return new_node(ND_COMMA, e1, e2);
+}
+
 // assign = equality ( "=" assign | "+=" assign | "-=" assign | "*=" assign | "/=" assign )?
 Node *assign() {
     Node *node = equality();
@@ -830,13 +843,13 @@ Node *assign() {
     if (consume("="))
         node = new_node(ND_AS, node, assign());
     if (consume("+="))
-        node = new_node(ND_AS, node, new_node(ND_ADD, node, assign()));
+        node = compound_assign(node, ND_ADD);
     if (consume("-="))
-        node = new_node(ND_AS, node, new_node(ND_SUB, node, assign()));
+        node = compound_assign(node, ND_SUB);
     if (consume("*="))
-        node = new_node(ND_AS, node, new_node(ND_MUL, node, assign()));
+        node = compound_assign(node, ND_MUL);
     if (consume("/="))
-        node = new_node(ND_AS, node, new_node(ND_DIV, node, assign()));
+        node = compound_assign(node, ND_DIV);
 
     return node;
 }
