@@ -903,6 +903,7 @@ Node *mul() {
 
 // unary = ( '+' | '-' )? primary
 //         | ( '&' | '*' | '!' )? unary | "sizeof" unary
+//         | ( "++" | "--" ) unary
 //         | postfix
 Node *unary() {
     if (consume("+"))
@@ -915,6 +916,15 @@ Node *unary() {
         return new_node_deref(unary());
     if (consume("!"))
         return new_node_not(unary());
+
+    if (consume("++")) {
+        Node *node = unary();
+        return new_node(ND_COMMA, new_node(ND_AS, node, new_add(node, new_node_num(1))), node);
+    }
+    if (consume("--")) {
+        Node *node = unary();
+        return new_node(ND_COMMA, new_node(ND_AS, node, new_add(node, new_node_num(-1))), node);
+    }
 
     if (consume("sizeof")) {
         Node *node = unary();

@@ -234,6 +234,9 @@ int main() {
     assert(3, ({ int x=2; x++; x; }), "{ int x=2; x++; x; }");
     assert(1, ({ int x=2; x--; x; }), "{ int x=2; x--; x; }");
 
+    assert(3, ({ int x=2; ++x; }), "{ int x=2; ++x; }");
+    assert(1, ({ int x=2; --x; }), "{ int x=2; --x; }");
+
     printf("OK\n");
     return 0;
 }
