@@ -241,6 +241,11 @@ int main() {
     assert(3, ({ int x=6; x/=2; x; }), "{ int x=6; x/=2; x; }");
     assert(3, ({ int x=6; x/=2; }), "{ int x=6; x/=2; }");
 
+    assert(1, 0||1, "0||1");
+    assert(0, 0||0, "0||0");
+    assert(0, 0&&1, "0&&1");
+    assert(1, 1&&5, "1&&5");
+
     printf("OK\n");
     return 0;
 }

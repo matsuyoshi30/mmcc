@@ -76,6 +76,40 @@ void gen_expr(Node *node) {
         printf("  movzb rax, al\n");
         printf("  push rax\n");
         return;
+    case ND_LOGOR: {
+        int seq = labels++;
+        gen_expr(node->lhs);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  jne .Ltrue%d\n", seq);
+        gen_expr(node->rhs);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  jne .Ltrue%d\n", seq);
+        printf("  push 0\n"); // false
+        printf("  jmp .Lend%d\n", seq);
+        printf(".Ltrue%d:\n", seq);
+        printf("  push 1\n"); // true
+        printf(".Lend%d:\n", seq);
+        return;
+    }
+    case ND_LOGAND: {
+        int seq = labels++;
+        gen_expr(node->lhs);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  je .Lfalse%d\n", seq);
+        gen_expr(node->rhs);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  je .Lfalse%d\n", seq);
+        printf("  push 1\n"); // true
+        printf("  jmp .Lend%d\n", seq);
+        printf(".Lfalse%d:\n", seq);
+        printf("  push 0\n"); // false
+        printf(".Lend%d:\n", seq);
+        return;
+    }
     case ND_FUNC: {
         int num_of_args = 0;
         for (Node *arg=node->args; arg; arg=arg->next) {

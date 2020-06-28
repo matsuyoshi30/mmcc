@@ -99,6 +99,13 @@ char *is_reserved(char *c) {
             return compOp[i];
     }
 
+    char *logicOp[] = {"&&", "||"};
+    for (int i=0; i<sizeof(logicOp)/sizeof(*logicOp); i++) {
+        int len = strlen(logicOp[i]);
+        if (strncmp(c, logicOp[i], len) == 0)
+            return logicOp[i];
+    }
+
     return NULL;
 }
 

@@ -90,6 +90,8 @@ typedef enum {
     ND_ADDR,  // &
     ND_DEREF, // *
     ND_NOT,   // !
+    ND_LOGOR,  // ||
+    ND_LOGAND, // &&
     ND_IF,
     ND_WHILE,
     ND_FOR,

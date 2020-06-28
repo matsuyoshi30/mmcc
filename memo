@@ -35,6 +35,7 @@
 - [x] postfix ++, --
 - [x] prefix ++, --
 - [x] +=, -=, *=, /=
+- [x] &&, ||
 - switch case
 - preprocesser
 - union
@@ -66,7 +67,9 @@ enum_decl     = ident? "{" enum-list* "}"
 enum-list     = ident ( "=" num )? ( "," ident ( "=" num)? )*
 expr_stmt     = expr
 expr          = assign ( "," assign )*
-assign        = equality ( "=" assign | "+=" assign | "-=" assign | "*=" assign | "/=" assign )?
+assign        = logicOr ( "=" assign | "+=" assign | "-=" assign | "*=" assign | "/=" assign )?
+logicOr       = logicAnd ( "||" logicAnd )?
+logicAnd      = equality ( "&&" equality )?
 equality      = relational ( "==" relational | "!=" relational )*
 relational    = add ( ">" add | "<" add | ">=" add | "<=" add )*
 add           = mul ( "+" mul | "-" mul )*
