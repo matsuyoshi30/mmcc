@@ -82,16 +82,16 @@ void gen_expr(Node *node) {
         gen_expr(node->lhs);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  jne .Ltrue%d\n", seq);
+        printf("  jne .Ltrue.%d\n", seq);
         gen_expr(node->rhs);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  jne .Ltrue%d\n", seq);
+        printf("  jne .Ltrue.%d\n", seq);
         printf("  push 0\n"); // false
-        printf("  jmp .Lend%d\n", seq);
-        printf(".Ltrue%d:\n", seq);
+        printf("  jmp .Lend.%d\n", seq);
+        printf(".Ltrue.%d:\n", seq);
         printf("  push 1\n"); // true
-        printf(".Lend%d:\n", seq);
+        printf(".Lend.%d:\n", seq);
         return;
     }
     case ND_LOGAND: {
@@ -99,16 +99,16 @@ void gen_expr(Node *node) {
         gen_expr(node->lhs);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  je .Lfalse%d\n", seq);
+        printf("  je .Lfalse.%d\n", seq);
         gen_expr(node->rhs);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  je .Lfalse%d\n", seq);
+        printf("  je .Lfalse.%d\n", seq);
         printf("  push 1\n"); // true
-        printf("  jmp .Lend%d\n", seq);
-        printf(".Lfalse%d:\n", seq);
+        printf("  jmp .Lend.%d\n", seq);
+        printf(".Lfalse.%d:\n", seq);
         printf("  push 0\n"); // false
-        printf(".Lend%d:\n", seq);
+        printf(".Lend.%d:\n", seq);
         return;
     }
     case ND_FUNC: {
@@ -227,16 +227,16 @@ void gen_stmt(Node *node) {
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
         if (node->els) {
-            printf("  je .Lelse%03d\n", seq);
+            printf("  je .Lelse.%d\n", seq);
             gen_stmt(node->then);
-            printf("  jmp .Lend%03d\n", seq);
-            printf(".Lelse%03d:\n", seq);
+            printf("  jmp .Lend.%d\n", seq);
+            printf(".Lelse.%d:\n", seq);
             gen_stmt(node->els);
-            printf(".Lend%03d:\n", seq);
+            printf(".Lend.%d:\n", seq);
         } else {
-            printf("  je .Lend%03d\n", seq);
+            printf("  je .Lend.%d\n", seq);
             gen_stmt(node->then);
-            printf(".Lend%03d:\n", seq);
+            printf(".Lend.%d:\n", seq);
         }
         return;
     }
@@ -245,14 +245,14 @@ void gen_stmt(Node *node) {
         int base = brkseq;
         brkseq = seq;
 
-        printf(".Lbegin%03d:\n", seq);
+        printf(".Lbegin.%d:\n", seq);
         gen_expr(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  je .Lbreak%d\n", seq);
+        printf("  je .Lbreak.%d\n", seq);
         gen_stmt(node->then);
-        printf("  jmp .Lbegin%03d\n", seq);
-        printf(".Lbreak%d:\n", seq);
+        printf("  jmp .Lbegin.%d\n", seq);
+        printf(".Lbreak.%d:\n", seq);
 
         brkseq = base;
         return;
@@ -264,24 +264,24 @@ void gen_stmt(Node *node) {
 
         if (node->preop)
             gen_stmt(node->preop);
-        printf(".Lbegin%03d:\n", seq);
+        printf(".Lbegin.%d:\n", seq);
         if (node->cond) {
             gen_expr(node->cond);
             printf("  pop rax\n");
             printf("  cmp rax, 0\n");
-            printf("  je .Lbreak%d\n", seq);
+            printf("  je .Lbreak.%d\n", seq);
         }
         gen_stmt(node->then);
         if (node->postop)
             gen_stmt(node->postop);
-        printf("  jmp .Lbegin%03d\n", seq);
-        printf(".Lbreak%d:\n", seq);
+        printf("  jmp .Lbegin.%d\n", seq);
+        printf(".Lbreak.%d:\n", seq);
 
         brkseq = base;
         return;
     }
     case ND_BREAK:
-        printf("  jmp .Lbreak%d\n", brkseq);
+        printf("  jmp .Lbreak.%d\n", brkseq);
         return;
     case ND_COMMA:
         gen_expr(node->lhs);
