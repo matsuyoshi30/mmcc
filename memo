@@ -36,6 +36,8 @@
 - [x] prefix ++, --
 - [x] +=, -=, *=, /=
 - [x] &&, ||
+- [x] break
+- continue
 - switch case
 - preprocesser
 - union
@@ -52,6 +54,7 @@ stmt          = "return" expr? ";"
               | "if" "(" expr ")" stmt ( "else" stmt )?
               | "while" "(" expr ")" stmt
               | "for" "(" expr_stmt? ";" expr? ";" expr_stmt? ")" stmt
+              | "break" ";"
               | typedefs
               | declaration
               | expr_stmt ";"

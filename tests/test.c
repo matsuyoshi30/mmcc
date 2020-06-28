@@ -246,6 +246,9 @@ int main() {
     assert(0, 0&&1, "0&&1");
     assert(1, 1&&5, "1&&5");
 
+    assert(6, ({ int x=0; for (int i=0; i<10; i=i+1) { x=x+1; if (i==5) break; } x; }), "{ int x=0; for (int i=0; i<10; i=i+1) { x=x+1; if (i==5) break; } x; }");
+    assert(5, ({ int i=0; while (1) { i++; if (i==5) break; } i; }), "{ int i=0; while (1) { i++; if (i==5) break; } i; }");
+
     printf("OK\n");
     return 0;
 }

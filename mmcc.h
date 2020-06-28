@@ -95,6 +95,7 @@ typedef enum {
     ND_IF,
     ND_WHILE,
     ND_FOR,
+    ND_BREAK,
     ND_BLOCK, // {...}
     ND_FUNC,
     ND_EXPR_STMT,

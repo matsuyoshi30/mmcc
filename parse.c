@@ -99,6 +99,12 @@ Node *new_node(Nodekind kind, Node *lhs, Node *rhs) {
     return node;
 }
 
+Node *new_node_break() {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_BREAK;
+    return node;
+}
+
 Node *new_node_addr(Node *target) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_ADDR;
@@ -431,6 +437,7 @@ Var *funcparams() {
 //        | "if" "(" expr ")" stmt ( "else" stmt )?
 //        | "while" "(" expr ")" stmt
 //        | "for" "(" expr_stmt? ";" expr? ";" expr_stmt? ")" stmt
+//        | "break" ";"
 //        | declaration
 //        | expr_stmt ";"
 Node *stmt() {
@@ -530,6 +537,11 @@ Node *stmt() {
         node->then = stmt();
         check_type(node->then);
         return node;
+    }
+
+    if (consume("break")) {
+        expect(";");
+        return new_node_break();
     }
 
     if (peek("typedef")) {

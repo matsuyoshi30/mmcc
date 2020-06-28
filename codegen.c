@@ -4,6 +4,7 @@
 
 static char *funcname;
 static int labels = 1;
+static int brkseq;
 static char *argRegs1[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
 static char *argRegs4[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 static char *argRegs8[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
@@ -241,18 +242,26 @@ void gen_stmt(Node *node) {
     }
     case ND_WHILE: {
         int seq = labels++;
+        int base = brkseq;
+        brkseq = seq;
+
         printf(".Lbegin%03d:\n", seq);
         gen_expr(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  je .Lend%03d\n", seq);
+        printf("  je .Lbreak%d\n", seq);
         gen_stmt(node->then);
         printf("  jmp .Lbegin%03d\n", seq);
-        printf(".Lend%03d:\n", seq);
+        printf(".Lbreak%d:\n", seq);
+
+        brkseq = base;
         return;
     }
     case ND_FOR: {
         int seq = labels++;
+        int base = brkseq;
+        brkseq = seq;
+
         if (node->preop)
             gen_stmt(node->preop);
         printf(".Lbegin%03d:\n", seq);
@@ -260,15 +269,20 @@ void gen_stmt(Node *node) {
             gen_expr(node->cond);
             printf("  pop rax\n");
             printf("  cmp rax, 0\n");
-            printf("  je .Lend%03d\n", seq);
+            printf("  je .Lbreak%d\n", seq);
         }
         gen_stmt(node->then);
         if (node->postop)
             gen_stmt(node->postop);
         printf("  jmp .Lbegin%03d\n", seq);
-        printf(".Lend%03d:\n", seq);
+        printf(".Lbreak%d:\n", seq);
+
+        brkseq = base;
         return;
     }
+    case ND_BREAK:
+        printf("  jmp .Lbreak%d\n", brkseq);
+        return;
     case ND_COMMA:
         gen_expr(node->lhs);
         printf("  pop rax\n");
