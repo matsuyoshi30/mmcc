@@ -39,10 +39,16 @@
 - [x] break
 - [x] continue
 - switch case
+- extern
+- local variable initializer
+- global variable initializer
+- string literal initializer
+- top-level typename-only declaration
+- static local variable
+- static global variable
+- compound literal
 - preprocesser
-- union
-- %
-- %=
+- variadic arguments
 
 # BNF
 
@@ -55,6 +61,7 @@ stmt          = "return" expr? ";"
               | "while" "(" expr ")" stmt
               | "for" "(" expr_stmt? ";" expr? ";" expr_stmt? ")" stmt
               | "break" ";"
+              | "continue" ";"
               | typedefs
               | declaration
               | expr_stmt ";"
