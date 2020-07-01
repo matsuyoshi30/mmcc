@@ -97,6 +97,8 @@ typedef enum {
     ND_FOR,
     ND_BREAK,
     ND_CONT,
+    ND_GOTO,
+    ND_LABEL,
     ND_BLOCK, // {...}
     ND_FUNC,
     ND_EXPR_STMT,
@@ -179,6 +181,8 @@ struct Node {
     Node *blocks; // for ND_BLOCK or ND_STMT_EXPR
 
     Member *member; // for ND_MEMBER
+
+    char *labelname;
 
     char *funcname;
     Node *args;

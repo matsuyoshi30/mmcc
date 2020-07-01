@@ -111,6 +111,18 @@ Node *new_node_continue() {
     return node;
 }
 
+Node *new_node_goto() {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_GOTO;
+    return node;
+}
+
+Node *new_node_label() {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_LABEL;
+    return node;
+}
+
 Node *new_node_addr(Node *target) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_ADDR;
@@ -445,6 +457,8 @@ Var *funcparams() {
 //        | "for" "(" expr_stmt? ";" expr? ";" expr_stmt? ")" stmt
 //        | "break" ";"
 //        | "continue" ";"
+//        | "goto" ident ";"
+//        | ident ":" stmt
 //        | declaration
 //        | expr_stmt ";"
 Node *stmt() {
@@ -556,6 +570,24 @@ Node *stmt() {
         return new_node_continue();
     }
 
+    if (consume("goto")) {
+        node = new_node_goto();
+        node->labelname = expect_ident();
+        expect(";");
+        return node;
+    }
+
+    if (token->kind == TK_IDENT) {
+        Token *tok = consume_ident();
+        if (consume(":")) {
+            node = new_node_label();
+            node->labelname = strndup(tok->str, tok->len);
+            node->lhs = stmt();
+            return node;
+        }
+        token = tok;
+    }
+
     if (peek("typedef")) {
         node = typedefs();
         return node;
@@ -566,6 +598,7 @@ Node *stmt() {
         check_type(node);
         return node;
     }
+
 
     node = expr_stmt();
     expect(";");

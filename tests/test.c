@@ -252,6 +252,11 @@ int main() {
     assert(6, ({ int x=0; for (int i=0;i<10;i++) { if (i>5) continue; x++; } x; }), "{ int x=0; for (int i=0;i<10;i++) { if (i>5) continue; x++; } x; }");
     assert(5, ({ int x=0; int i=0; while (i<10) { i++; if (i>5) continue; x++; } x; }), "{ int x=0; int i=0; while (i<10) { i++; if (i>5) continue; x++; } x; }");
 
+
+    assert(3, ({ int i=0; goto a; a: i++; b: i++; c: i++; i; }), "{ int i=0; goto a; a: i++; b: i++; c: i++; i; }");
+    assert(2, ({ int i=0; goto e; d: i++; e: i++; f: i++; i; }), "{ int i=0; goto e; d: i++; e: i++; f: i++; i; }");
+    assert(1, ({ int i=0; goto i; g: i++; h: i++; i: i++; i; }), "{ int i=0; goto i; g: i++; h: i++; i: i++; i; }");
+
     printf("OK\n");
     return 0;
 }

@@ -295,6 +295,13 @@ void gen_stmt(Node *node) {
     case ND_CONT:
         printf("  jmp .Lcontinue.%d\n", contseq);
         return;
+    case ND_GOTO:
+        printf("  jmp .L.%s\n", node->labelname);
+        return;
+    case ND_LABEL:
+        printf(".L.%s:\n", node->labelname);
+        gen_stmt(node->lhs);
+        return;
     case ND_COMMA:
         gen_expr(node->lhs);
         printf("  pop rax\n");
