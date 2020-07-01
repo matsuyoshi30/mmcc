@@ -38,6 +38,7 @@
 - [x] &&, ||
 - [x] break
 - [x] continue
+- [x] goto
 - switch case
 - extern
 - local variable initializer
@@ -62,6 +63,8 @@ stmt          = "return" expr? ";"
               | "for" "(" expr_stmt? ";" expr? ";" expr_stmt? ")" stmt
               | "break" ";"
               | "continue" ";"
+              | "goto" ident ";"
+              | ident ":" stmt
               | typedefs
               | declaration
               | expr_stmt ";"
