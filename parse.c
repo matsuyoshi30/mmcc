@@ -307,6 +307,8 @@ Tag *find_tag(Token *tok) {
     return NULL;
 }
 
+Node *current_switch;
+
 void enter_scope() {
     scope_depth++;
 }
@@ -455,6 +457,9 @@ Var *funcparams() {
 //        | "if" "(" expr ")" stmt ( "else" stmt )?
 //        | "while" "(" expr ")" stmt
 //        | "for" "(" expr_stmt? ";" expr? ";" expr_stmt? ")" stmt
+//        | "switch" "(" expr ")" stmt
+//        | "case" num ":" stmt
+//        | "default" ":" stmt
 //        | "break" ";"
 //        | "continue" ";"
 //        | "goto" ident ";"
@@ -557,6 +562,41 @@ Node *stmt() {
 
         node->then = stmt();
         check_type(node->then);
+        return node;
+    }
+
+    if (consume("switch")) {
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_SWITCH;
+        expect("(");
+        node->cond = expr();
+        check_type(node->cond);
+        expect(")");
+
+        Node *cw = current_switch;
+        current_switch = node;
+        node->then = stmt();
+        current_switch = cw;
+        return node;
+    }
+
+    if (consume("case")) {
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_CASE;
+        node->val = expect_number();
+        expect(":");
+        node->lhs = stmt();
+        node->next_case = current_switch->next_case;
+        current_switch->next_case = node;
+        return node;
+    }
+
+    if (consume("default")) {
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_CASE;
+        expect(":");
+        node->lhs = stmt();
+        current_switch->default_case = node;
         return node;
     }
 

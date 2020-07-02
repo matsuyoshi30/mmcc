@@ -99,6 +99,8 @@ typedef enum {
     ND_CONT,
     ND_GOTO,
     ND_LABEL,
+    ND_SWITCH,
+    ND_CASE,
     ND_BLOCK, // {...}
     ND_FUNC,
     ND_EXPR_STMT,
@@ -183,6 +185,10 @@ struct Node {
     Member *member; // for ND_MEMBER
 
     char *labelname;
+
+    Node *next_case;
+    Node *default_case;
+    int case_label;
 
     char *funcname;
     Node *args;
