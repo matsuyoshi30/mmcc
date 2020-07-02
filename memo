@@ -39,7 +39,7 @@
 - [x] break
 - [x] continue
 - [x] goto
-- switch case
+- [x] switch case
 - extern
 - local variable initializer
 - global variable initializer
@@ -61,6 +61,9 @@ stmt          = "return" expr? ";"
               | "if" "(" expr ")" stmt ( "else" stmt )?
               | "while" "(" expr ")" stmt
               | "for" "(" expr_stmt? ";" expr? ";" expr_stmt? ")" stmt
+              | "switch" "(" expr ")" stmt
+              | "case" num ":" stmt
+              | "default" ":" stmt
               | "break" ";"
               | "continue" ";"
               | "goto" ident ";"
