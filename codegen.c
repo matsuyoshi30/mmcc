@@ -241,27 +241,6 @@ void gen_stmt(Node *node) {
         }
         return;
     }
-    case ND_WHILE: {
-        int seq = labels++;
-        int brk = brkseq;
-        int cont = contseq;
-        brkseq = seq;
-        contseq = seq;
-
-        printf(".Lbegin.%d:\n", seq);
-        gen_expr(node->cond);
-        printf("  pop rax\n");
-        printf("  cmp rax, 0\n");
-        printf("  je .Lbreak.%d\n", seq);
-        gen_stmt(node->then);
-        printf(".Lcontinue.%d:\n", seq);
-        printf("  jmp .Lbegin.%d\n", seq);
-        printf(".Lbreak.%d:\n", seq);
-
-        brkseq = brk;
-        contseq = cont;
-        return;
-    }
     case ND_FOR: {
         int seq = labels++;
         int brk = brkseq;

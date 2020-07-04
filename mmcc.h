@@ -93,7 +93,6 @@ typedef enum {
     ND_LOGOR,  // ||
     ND_LOGAND, // &&
     ND_IF,
-    ND_WHILE,
     ND_FOR,
     ND_BREAK,
     ND_CONT,

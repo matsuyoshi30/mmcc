@@ -517,7 +517,7 @@ Node *stmt() {
 
     if (consume("while")) {
         node = calloc(1, sizeof(Node));
-        node->kind = ND_WHILE;
+        node->kind = ND_FOR;
         expect("(");
         node->cond = expr();
         check_type(node->cond);
