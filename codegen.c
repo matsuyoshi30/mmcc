@@ -49,6 +49,16 @@ void load(Type *type) {
     return;
 }
 
+void typecast(Type *type) {
+    printf("  pop rax\n");
+    if (type->size == 1)
+        printf("  movsx rax, al\n");
+    else if (type->size == 4)
+        printf("  movsx rax, eax\n");
+    printf("  push rax\n");
+    return;
+}
+
 void gen_expr(Node *node) {
     switch (node->kind) {
     case ND_NUM:
@@ -67,6 +77,10 @@ void gen_expr(Node *node) {
         gen_expr(node->lhs);
         if (node->type->kind != TY_ARR)
             load(node->type);
+        return;
+    case ND_CAST:
+        gen_expr(node->lhs);
+        typecast(node->type);
         return;
     case ND_NOT:
         gen_expr(node->lhs);

@@ -347,6 +347,7 @@ Node *equality();
 Node *relational();
 Node *add();
 Node *mul();
+Node *cast();
 Node *unary();
 Node *postfix();
 Node *struct_ref();
@@ -766,6 +767,23 @@ Type *declarator(Type *basetype) {
     return type;
 }
 
+// abstract_declarator = "*"* "(" abstract_declarator ")" ( type_suffix )?
+Type *abstract_declarator(Type *basetype) {
+    Type *type = basetype;
+    while (consume("*"))
+        type = pointer_to(type);
+
+    if (consume("(")) {
+        Type *placeholder = calloc(1, sizeof(Type));
+        Type *nestedType = abstract_declarator(placeholder);
+        expect(")");
+        *placeholder = *type_suffix(type);
+        return nestedType;
+    }
+
+    return type_suffix(type);
+}
+
 // type_suffix = ( "[" num "]" ( type_suffix )? )?
 Type *type_suffix(Type *ty) {
     if (consume("[")) {
@@ -1019,35 +1037,56 @@ Node *add() {
     }
 }
 
-// mul = unary ( '*' unary | '/' unary )*
+// mul = cast ( '*' cast | '/' cast )*
 Node *mul() {
-    Node *node = unary();
+    Node *node = cast();
 
     for (;;) {
         if (consume("*"))
-            node = new_node(ND_MUL, node, unary());
+            node = new_node(ND_MUL, node, cast());
         else if (consume("/"))
-            node = new_node(ND_DIV, node, unary());
+            node = new_node(ND_DIV, node, cast());
         else
             return node;
     }
 }
 
-// unary = ( '+' | '-' )? primary
-//         | ( '&' | '*' | '!' )? unary | "sizeof" unary
+// cast = "(" typename ")" cast | unary
+Node *cast() {
+    Token *tok = token;
+    if (consume("(")) {
+        if (is_typename()) {
+            Node *node = calloc(1, sizeof(Node));
+            node->kind = ND_CAST;
+            Type *type = basetype();
+            node->type = abstract_declarator(type);
+            expect(")");
+            node->lhs = cast();
+            check_type(node->lhs);
+            return node;
+        }
+        token = tok; // bring back the token sequense
+    }
+
+    return unary();
+}
+
+// unary = ( '+' | '-' )? cast
+//         | ( '&' | '*' | '!' )? cast
+//         | "sizeof" unary
 //         | ( "++" | "--" ) unary
 //         | postfix
 Node *unary() {
     if (consume("+"))
-        return unary();
+        return cast();
     if (consume("-"))
-        return new_node(ND_SUB, new_node_num(0), unary());
+        return new_node(ND_SUB, new_node_num(0), cast());
     if (consume("&"))
-        return new_node_addr(unary());
+        return new_node_addr(cast());
     if (consume("*"))
-        return new_node_deref(unary());
+        return new_node_deref(cast());
     if (consume("!"))
-        return new_node_not(unary());
+        return new_node_not(cast());
 
     if (consume("++")) {
         Node *node = unary();

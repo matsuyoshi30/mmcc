@@ -40,6 +40,7 @@
 - [x] continue
 - [x] goto
 - [x] switch case
+- type cast
 - extern
 - local variable initializer
 - global variable initializer
@@ -89,9 +90,10 @@ logicAnd      = equality ( "&&" equality )?
 equality      = relational ( "==" relational | "!=" relational )*
 relational    = add ( ">" add | "<" add | ">=" add | "<=" add )*
 add           = mul ( "+" mul | "-" mul )*
-mul           = unary ( '*' unary | '/' unary )*
-unary         = ( '+' | '-' )? primary
-              | ( '&' | '*' | '!' )? unary
+mul           = cast ( '*' cast | '/' cast )*
+cast          = "(" typename ")" cast | unary
+unary         = ( '+' | '-' )? cast
+              | ( '&' | '*' | '!' )? cast
               | ( "++" | "--" ) unary
               | "sizeof" unary | postfix
 postfix       = primary ( ( "[" expr "]" ) | ( "." ident ) | ( "->" ident ) )*

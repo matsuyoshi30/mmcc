@@ -262,6 +262,8 @@ int main() {
     assert(7, ({ int i=0; switch(2) { case 0: i=5; break; case 1: i=6; break; case 2: i=7; break; default: i=8; } i; }), "({ int i=0; switch(2) { case 0: i=5; break; case 1: i=6; break; case 2: i=7; break; default: i=8; } i; })");
     assert(8, ({ int i=0; switch(3) { case 0: i=5; break; case 1: i=6; break; case 2: i=7; break; default: i=8; } i; }), "({ int i=0; switch(3) { case 0: i=5; break; case 1: i=6; break; case 2: i=7; break; default: i=8; } i; })");
 
+    assert(97, (int)'a', "(int)'a'");
+
     printf("OK\n");
     return 0;
 }
