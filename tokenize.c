@@ -110,7 +110,7 @@ char *is_reserved(char *c) {
 }
 
 char *is_type(char *c) {
-    char *tw[] = {"int", "char", "struct", "void", "enum"};
+    char *tw[] = {"int", "char", "short", "long", "struct", "void", "enum"};
     for (int i=0; i<sizeof(tw)/sizeof(*tw); i++) {
         int len = strlen(tw[i]);
         if (strncmp(c, tw[i], len) == 0 && !is_alnum(c[len]))

@@ -7,6 +7,7 @@ static int labels = 1;
 static int brkseq;
 static int contseq;
 static char *argRegs1[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
+static char *argRegs2[] = {"di", "si", "dx", "cx", "r8w", "r9w"};
 static char *argRegs4[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 static char *argRegs8[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
@@ -41,8 +42,10 @@ void load(Type *type) {
     printf("  pop rax\n");
     if (type->size == 1)
         printf("  movsx rax, byte ptr [rax]\n");
+    else if (type->size == 2)
+        printf("  movsx rax, word ptr [rax]\n");
     else if (type->size == 4)
-        printf("  movsxd rax, dword ptr [rax]\n");
+        printf("  movsx rax, dword ptr [rax]\n");
     else
         printf("  mov rax, [rax]\n");
     printf("  push rax\n");
@@ -53,8 +56,12 @@ void typecast(Type *type) {
     printf("  pop rax\n");
     if (type->size == 1)
         printf("  movsx rax, al\n");
+    else if (type->size == 2)
+        printf("  movsx rax, ax\n");
     else if (type->size == 4)
         printf("  movsx rax, eax\n");
+    else
+        printf("  movsx rax, rax\n");
     printf("  push rax\n");
     return;
 }

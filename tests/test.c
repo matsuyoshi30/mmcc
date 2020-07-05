@@ -264,6 +264,11 @@ int main() {
 
     assert(97, (int)'a', "(int)'a'");
 
+    assert(2, ({ short x=2; x; }), "{ short x=2; x; }");
+    assert(2, ({ short x; sizeof(x); }), "{ short x; sizeof(x); }");
+    assert(8, ({ long x=8; x; }), "{ long x=8; x; }");
+    assert(8, ({ long x; sizeof(x); }), "{ long x; sizeof(x); }");
+
     printf("OK\n");
     return 0;
 }

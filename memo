@@ -41,6 +41,7 @@
 - [x] goto
 - [x] switch case
 - [x] type cast
+- [x] type keyword 'short' and 'long'
 - extern
 - local variable initializer
 - global variable initializer
@@ -74,7 +75,7 @@ stmt          = "return" expr? ";"
               | expr_stmt ";"
 typedefs      = "typedef" basetype declarator ( "," declarator )* ";"
 declaration   = basetype declarator ( "=" expr )? ( "," declarator ( "=" expr )? )* ";"
-is_typename   = "int" | "char" | "struct" | "void" | typedef_name | "enum"
+is_typename   = "int" | "char" | "short" | "long" | "struct" | "void" | typedef_name | "enum"
 basetype      = is_typename | typedef_name
 declarator    = "*"* ( "(" declarator ")" | ident ) ( type_suffix )?
 type_suffix   = ( "[" num "]" ( type_suffix )? )?
