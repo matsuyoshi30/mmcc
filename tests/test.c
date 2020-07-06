@@ -263,6 +263,10 @@ int main() {
     assert(8, ({ int i=0; switch(3) { case 0: i=5; break; case 1: i=6; break; case 2: i=7; break; default: i=8; } i; }), "{ int i=0; switch(3) { case 0: i=5; break; case 1: i=6; break; case 2: i=7; break; default: i=8; } i; }");
 
     assert(97, (int)'a', "(int)'a'");
+    assert(131585, (int)8590066177, "(int)8590066177");
+    assert(513, (short)8590066177, "(short)8590066177");
+    assert(1, (char)8590066177, "(char)8590066177");
+    assert(1, (long)1, "(long)1");
 
     assert(2, ({ short x=2; x; }), "{ short x=2; x; }");
     assert(2, ({ short x; sizeof(x); }), "{ short x; sizeof(x); }");

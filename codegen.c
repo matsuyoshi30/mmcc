@@ -60,8 +60,6 @@ void typecast(Type *type) {
         printf("  movsx rax, ax\n");
     else if (type->size == 4)
         printf("  movsx rax, eax\n");
-    else
-        printf("  movsx rax, rax\n");
     printf("  push rax\n");
     return;
 }
