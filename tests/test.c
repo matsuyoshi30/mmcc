@@ -42,6 +42,14 @@ int f();
 typedef int GInt;
 typedef struct { int a; int b; } GStruct;
 
+long testFunc5(long a, long b) {
+    return a + b;
+}
+
+short testFunc6(short a, short b) {
+    return a - b;
+}
+
 int main() {
     assert(0, 0, "0");
     assert(42, 42, "42");
@@ -272,6 +280,9 @@ int main() {
     assert(2, ({ short x; sizeof(x); }), "{ short x; sizeof(x); }");
     assert(8, ({ long x=8; x; }), "{ long x=8; x; }");
     assert(8, ({ long x; sizeof(x); }), "{ long x; sizeof(x); }");
+
+    assert(3, (int)testFunc5((long)1, (long)2), "(int)testFunc5((long)1, (long)2)");
+    assert(4, (int)testFunc6((short)7, (short)3), "(int)testFunc6((short)7, (short)3)");
 
     printf("OK\n");
     return 0;

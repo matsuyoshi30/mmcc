@@ -387,6 +387,8 @@ void codegen() {
         for (Var *param=func->params; param; param=param->next) {
             if (param->type->size == 1)
                 printf("  mov [rbp-%d], %s # %s\n", param->offset, argRegs1[i++], param->name);
+            else if (param->type->size == 2)
+                printf("  mov [rbp-%d], %s # %s\n", param->offset, argRegs2[i++], param->name);
             else if (param->type->size == 4)
                 printf("  mov [rbp-%d], %s # %s\n", param->offset, argRegs4[i++], param->name);
             else
