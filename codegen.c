@@ -153,10 +153,16 @@ void gen_expr(Node *node) {
 
         printf("  pop rdi\n");
         printf("  pop rax\n");
-        if (node->type->size == 4)
+
+        if (node->type->size == 1)
+            printf("  mov [rax], dil\n");
+        else if (node->type->size == 2)
+            printf("  mov [rax], di\n");
+        else if (node->type->size == 4)
             printf("  mov [rax], edi\n"); // store value from edi into the address in rax
         else
             printf("  mov [rax], rdi\n"); // store value from rdi into the address in rax
+
         printf("  push rdi\n");
         return;
     case ND_STMT_EXPR:
