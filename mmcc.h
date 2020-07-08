@@ -43,6 +43,7 @@ typedef enum {
     TY_SHORT,
     TY_INT,
     TY_LONG,
+    TY_BOOL,
     TY_PTR,
     TY_ARR,
     TY_STRUCT,

@@ -54,6 +54,15 @@ void load(Type *type) {
 
 void typecast(Type *type) {
     printf("  pop rax\n");
+
+    if (type->kind == TY_BOOL) {
+        printf("  cmp rax, 0\n");
+        printf("  setne al\n");
+        printf("  movzx rax, al\n");
+        printf("  push rax\n");
+        return;
+    }
+
     if (type->size == 1)
         printf("  movsx rax, al\n");
     else if (type->size == 2)
@@ -153,6 +162,12 @@ void gen_expr(Node *node) {
 
         printf("  pop rdi\n");
         printf("  pop rax\n");
+
+        if (node->type->kind == TY_BOOL) {
+            printf("  cmp rdi, 0\n");
+            printf("  setne dil\n");
+            printf("  movzb rdi, dil\n");
+        }
 
         if (node->type->size == 1)
             printf("  mov [rax], dil\n");

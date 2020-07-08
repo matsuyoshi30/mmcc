@@ -284,6 +284,13 @@ int main() {
     assert(3, (int)testFunc5((long)1, (long)2), "(int)testFunc5((long)1, (long)2)");
     assert(4, (int)testFunc6((short)7, (short)3), "(int)testFunc6((short)7, (short)3)");
 
+    assert(0, ({ _Bool x=0; x; }), "{ _Bool x=0; x; }");
+    assert(1, ({ _Bool x=1; x; }), "{ _Bool x=1; x; }");
+    assert(1, ({ _Bool x=2; x; }), "{ _Bool x=2; x; }");
+    assert(1, (_Bool)1, "(_Bool)1");
+    assert(1, (_Bool)2, "(_Bool)2");
+    assert(0, (_Bool)(char)256, "(_Bool)(char)256");
+
     printf("OK\n");
     return 0;
 }

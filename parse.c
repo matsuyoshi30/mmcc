@@ -5,6 +5,7 @@ Type *char_type = &(Type){TY_CHAR, 1};
 Type *short_type = &(Type){TY_SHORT, 2};
 Type *int_type = &(Type){TY_INT, 4};
 Type *long_type = &(Type){TY_LONG, 8};
+Type *bool_type = &(Type){TY_BOOL, 1};
 Type *enum_type = &(Type){TY_ENUM, 4};
 
 static int lc = 0;
@@ -13,7 +14,8 @@ static int lc = 0;
 
 bool is_integer(Type *type) {
     return type->kind == TY_INT || type->kind == TY_CHAR
-        || type->kind == TY_SHORT || type->kind == TY_LONG;
+        || type->kind == TY_SHORT || type->kind == TY_LONG
+        || type->kind == TY_BOOL;
 }
 
 Type *pointer_to(Type *ty) {
@@ -715,10 +717,10 @@ Node *declaration() {
     return node;
 }
 
-// is_typename = "int" | "char" | "short" | "long"
+// is_typename = "int" | "char" | "short" | "long" | "_Bool"
 //             | "struct" | "void" | typedef_name | "enum"
 bool is_typename() {
-    if (peek("int") || peek("char") || peek("short") || peek("long")
+    if (peek("int") || peek("char") || peek("short") || peek("long") || peek("_Bool")
         || peek("struct") || peek("void") || find_type(token) || peek("enum"))
         return true;
 
@@ -740,6 +742,8 @@ Type *basetype() {
         return short_type;
     if (consume("long"))
         return long_type;
+    if (consume("_Bool"))
+        return bool_type;
     if (consume("struct"))
         return struct_decl();
     if (consume("enum"))
