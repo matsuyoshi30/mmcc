@@ -1111,6 +1111,17 @@ Node *unary() {
     }
 
     if (consume("sizeof")) {
+        Token *tok = token;
+        if (consume("(")) {
+            if (is_typename()) {
+                Type *type = basetype();
+                type = abstract_declarator(type);
+                expect(")");
+                return new_node_num(type->size);
+            }
+            token = tok; // bring back the token sequense
+        }
+
         Node *node = unary();
         check_type(node);
         return new_node_num(node->type->size);
