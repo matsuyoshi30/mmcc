@@ -14,7 +14,7 @@ $(OBJS): mmcc.h
 
 test: mmcc
 	./mmcc tests/test.c > tmp.s
-	cc -static -o tmp tmp.s
+	gcc -static -o tmp tmp.s
 	./tmp
 
 debug: mmcc
