@@ -305,6 +305,9 @@ int main() {
     assert(48, sizeof(int[3][4]), "sizeof(int[3][4])");
     assert(8, sizeof(struct {int a; int b;}), "sizeof(struct {int a; int b;})");
 
+    assert(4, ({ struct T *foo; struct T {int x;}; sizeof(struct T); }), "{ struct T *foo; struct T {int x;}; sizeof(struct T); }");
+    assert(4, ({ typedef struct T T; struct T { int x; }; sizeof(T); }), "{ typedef struct T T; struct T { int x; }; sizeof(T); }");
+
     printf("OK\n");
     return 0;
 }

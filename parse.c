@@ -303,10 +303,10 @@ void push_tagscope(Tag *tag) {
 
 Tag *tags;
 
-Tag *find_tag(Token *tok) {
+TagScope *find_tag(Token *tok) {
     for (TagScope *ts=tagscope; ts; ts=ts->next) {
         if (strlen(ts->tag->name) == tok->len && !strncmp(tok->str, ts->tag->name, tok->len))
-            return ts->tag;
+            return ts;
     }
 
     return NULL;
@@ -813,7 +813,8 @@ Type *type_suffix(Type *ty) {
 Type *struct_decl() {
     Token *tok = consume_ident();
     if (tok) {
-        Tag *tag = calloc(1, sizeof(Tag));
+        char *name = strndup(tok->str, tok->len);
+        TagScope *tsc;
 
         if (consume("{")) {
             Type *type = calloc(1, sizeof(Type));
@@ -827,7 +828,15 @@ Type *struct_decl() {
             }
             type->size = offset;
 
-            tag->name = strndup(tok->str, tok->len);
+            tsc = find_tag(tok);
+            // redefinition
+            if (tsc && tsc->depth == scope_depth) {
+                *tsc->tag->type = *type;
+                return type;
+            }
+
+            Tag *tag = calloc(1, sizeof(Tag));
+            tag->name = name;
             tag->type = type;
             tag->next = tags;
             tags = tag;
@@ -835,11 +844,22 @@ Type *struct_decl() {
 
             return type;
         } else {
-            tag = find_tag(tok);
-            if (!tag)
-                error_at(token->str, "unknown tag name");
+            tsc = find_tag(tok);
+            if (!tsc) {
+                Tag *tag = calloc(1, sizeof(Tag));
 
-            return tag->type;
+                Type *type = calloc(1, sizeof(Type));
+                type->kind = TY_STRUCT;
+                tag->name = name;
+                tag->type = type;
+                tag->next = tags;
+                tags = tag;
+                push_tagscope(tags);
+
+                return type;
+            }
+
+            return tsc->tag->type;
         }
     }
 
@@ -891,15 +911,15 @@ Member *struct_members() {
 Type *enum_decl() {
     Token *tok = consume_ident();
 
-    Tag *tag = calloc(1, sizeof(Tag));
+    TagScope *tsc;
     if (tok) {
         if (!peek("{")) {
-            tag = find_tag(tok);
-            if (!tag)
+            tsc = find_tag(tok);
+            if (!tsc)
                 error_at(token->str, "unknown tag name");
-            if (tag->type->kind != TY_ENUM)
+            if (tsc->tag->type->kind != TY_ENUM)
                 error_at(token->str, "not enum type");
-            return tag->type;
+            return tsc->tag->type;
         }
     }
 
@@ -925,6 +945,7 @@ Type *enum_decl() {
     }
 
     if (tok) {
+        Tag *tag = calloc(1, sizeof(Tag));
         tag->name = strndup(tok->str, tok->len);
         tag->type = enum_type;
         tag->next = tags;
