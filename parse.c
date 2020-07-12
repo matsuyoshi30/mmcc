@@ -248,14 +248,17 @@ Var *new_lvar(Type *type, char *name) {
     return var;
 }
 
-Var *new_gvar(Type *type, char *name) {
+Var *new_gvar(Type *type, char *name, bool is_extern) {
     Var *var = calloc(1, sizeof(Var));
     var->type = type;
     var->name = name;
     var->is_local = false;
-    var->next = globals;
-    globals = var;
     push_varscope(name)->var = var;
+
+    if (!is_extern) {
+        var->next = globals;
+        globals = var;
+    }
 
     return var;
 }
@@ -331,7 +334,7 @@ void leave_scope() {
 Function *code;
 
 void program();
-Function *function(Type *type, char *funcname);
+Function *function(Type *type, char *funcname, bool is_extern);
 Var *funcparams();
 Node *stmt();
 Node *typedefs();
@@ -379,6 +382,8 @@ void program() {
             if (consume("static"))
                 is_static = true;
 
+            bool is_extern = consume("extern");
+
             Type *ty = basetype();
             while (consume("*"))
                 ty = pointer_to(ty);
@@ -387,12 +392,12 @@ void program() {
             locals = NULL;
             tags = NULL;
             if (peek("(")) {
-                cur->next = function(ty, name);
+                cur->next = function(ty, name, is_extern);
                 cur->next->is_static = is_static;
                 cur = cur->next;
             } else {
                 ty = type_suffix(ty);
-                new_gvar(ty, name);
+                new_gvar(ty, name, is_extern);
                 expect(";");
             }
         }
@@ -402,7 +407,7 @@ void program() {
 }
 
 // function = "(" funcparams* ")" ( "{" stmt* "}" | ";" )
-Function *function(Type *type, char *funcname) {
+Function *function(Type *type, char *funcname, bool is_extern) {
     Function *func = calloc(1, sizeof(Function));
 
     expect("(");
@@ -418,6 +423,9 @@ Function *function(Type *type, char *funcname) {
 
         return func;
     }
+
+    if (is_extern)
+        error_at(token->str, "invalid definition");
 
     expect("{");
 

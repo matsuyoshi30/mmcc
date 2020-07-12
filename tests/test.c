@@ -54,6 +54,9 @@ static int static_func() {
     return 3;
 }
 
+extern int ext1;
+extern int *ext2;
+
 int main() {
     assert(0, 0, "0");
     assert(42, 42, "42");
@@ -313,6 +316,11 @@ int main() {
     assert(4, ({ typedef struct T T; struct T { int x; }; sizeof(T); }), "{ typedef struct T T; struct T { int x; }; sizeof(T); }");
 
     assert(3, static_func(), "static_func()");
+
+    ext1 = 5;
+    assert(5, ext1, "ext1");
+    ext2 = &ext1;
+    assert(5, *ext2, "*ext2");
 
     printf("OK\n");
     return 0;
