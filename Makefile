@@ -14,7 +14,8 @@ $(OBJS): mmcc.h
 
 test: mmcc
 	./mmcc tests/test.c > tmp.s
-	gcc -static -o tmp tmp.s
+	echo 'int static_func() { return 5; }' | gcc -xc -c -o tmp2.o -
+	gcc -static -o tmp tmp.s tmp2.o
 	./tmp
 
 debug: mmcc

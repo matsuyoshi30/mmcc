@@ -375,6 +375,10 @@ void program() {
         if (peek("typedef")) {
             typedefs();
         } else {
+            bool is_static = false;
+            if (consume("static"))
+                is_static = true;
+
             Type *ty = basetype();
             while (consume("*"))
                 ty = pointer_to(ty);
@@ -384,6 +388,7 @@ void program() {
             tags = NULL;
             if (peek("(")) {
                 cur->next = function(ty, name);
+                cur->next->is_static = is_static;
                 cur = cur->next;
             } else {
                 ty = type_suffix(ty);

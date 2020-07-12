@@ -202,6 +202,7 @@ typedef struct Function Function;
 struct Function {
     Function *next;
     Type *type;
+    bool is_static;
     char *name;
     Var *params;
     Var *locals;

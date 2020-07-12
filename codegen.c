@@ -389,7 +389,8 @@ void codegen() {
     printf(".text\n");
     for (Function *func=code; func; func=func->next) {
         funcname = func->name;
-        printf(".global %s\n", func->name);
+        if (!func->is_static)
+            printf(".global %s\n", func->name);
         printf("%s:\n", funcname);
 
         int stackSize = 0;

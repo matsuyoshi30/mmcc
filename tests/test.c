@@ -50,6 +50,10 @@ short testFunc6(short a, short b) {
     return a - b;
 }
 
+static int static_func() {
+    return 3;
+}
+
 int main() {
     assert(0, 0, "0");
     assert(42, 42, "42");
@@ -307,6 +311,8 @@ int main() {
 
     assert(4, ({ struct T *foo; struct T {int x;}; sizeof(struct T); }), "{ struct T *foo; struct T {int x;}; sizeof(struct T); }");
     assert(4, ({ typedef struct T T; struct T { int x; }; sizeof(T); }), "{ typedef struct T T; struct T { int x; }; sizeof(T); }");
+
+    assert(3, static_func(), "static_func()");
 
     printf("OK\n");
     return 0;
