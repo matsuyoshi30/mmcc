@@ -14,7 +14,7 @@ $(OBJS): mmcc.h
 
 test: mmcc
 	./mmcc tests/test.c > tmp.s
-	echo 'int static_func() { return 5; }' | gcc -xc -c -o tmp2.o -
+	echo 'int ext1; int *ext2; int static_func() { return 5; }' | gcc -xc -c -o tmp2.o -
 	gcc -static -o tmp tmp.s tmp2.o
 	./tmp
 
