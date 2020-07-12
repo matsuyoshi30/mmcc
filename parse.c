@@ -387,6 +387,8 @@ void program() {
             Type *ty = basetype();
             while (consume("*"))
                 ty = pointer_to(ty);
+            if (consume(";"))
+                continue;
             char *name = expect_ident();
 
             locals = NULL;
