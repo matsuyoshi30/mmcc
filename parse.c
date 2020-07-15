@@ -956,6 +956,13 @@ Type *enum_decl() {
         }
 
         var->enum_val = val++;
+
+        Token *tok = token;
+        if (consume(",") && peek("}")) {
+            consume("}");
+            break;
+        }
+        token = tok;
         num++;
     }
 
