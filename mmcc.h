@@ -57,7 +57,7 @@ struct Type {
     Typekind kind;
     int size;
     struct Type *ptr_to;
-    size_t size_array;
+    int size_array;
 
     char *name;
 
