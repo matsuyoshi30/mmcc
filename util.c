@@ -1,5 +1,8 @@
 #include "mmcc.h"
 
+char *filename;
+char *user_input;
+
 void nop() {}
 
 void error(char *fmt, ...) {

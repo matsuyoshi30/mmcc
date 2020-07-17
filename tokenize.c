@@ -1,5 +1,7 @@
 #include "mmcc.h"
 
+char *user_input;
+
 // Tokenizer
 
 Token *token;
