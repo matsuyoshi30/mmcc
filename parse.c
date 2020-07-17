@@ -384,22 +384,25 @@ void program() {
 
             bool is_extern = consume("extern");
 
-            Type *ty = basetype();
-            while (consume("*"))
-                ty = pointer_to(ty);
+            Type *base = basetype();
             if (consume(";"))
                 continue;
-            char *name = expect_ident();
+            Type *type = declarator(base);
+            char *name = type->name;
 
             locals = NULL;
             tags = NULL;
             if (peek("(")) {
-                cur->next = function(ty, name, is_extern);
-                cur->next->is_static = is_static;
-                cur = cur->next;
+                Function *func = function(type, name, is_extern);
+                if (func) {
+                    cur->next = func;
+                    cur->next->is_static = is_static;
+                    cur = cur->next;
+                } else {
+                    continue;
+                }
             } else {
-                ty = type_suffix(ty);
-                new_gvar(ty, name, is_extern);
+                new_gvar(type, name, is_extern);
                 expect(";");
             }
         }
@@ -408,23 +411,20 @@ void program() {
     code = head.next;
 }
 
-// function = "(" funcparams* ")" ( "{" stmt* "}" | ";" )
+// function = "(" funcparams* ")" "{" stmt* "}"
 Function *function(Type *type, char *funcname, bool is_extern) {
     Function *func = calloc(1, sizeof(Function));
 
     expect("(");
 
     locals = funcparams();
-    func->params = locals;
+    if (consume(";")) {
+        return NULL;
+    }
 
+    func->params = locals;
     func->type = type;
     func->name = funcname;
-
-    if (consume(";")) {
-        func->locals = locals;
-
-        return func;
-    }
 
     if (is_extern)
         error_at(token->str, "invalid definition");
