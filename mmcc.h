@@ -7,13 +7,10 @@
 #include <stdarg.h>
 #include <string.h>
 
-extern char *filename;
-extern char *user_input;
+void nop();
 
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
-
-void nop();
 
 char *read_file(char *path);
 
@@ -76,7 +73,7 @@ int expect_number();
 char *expect_ident();
 bool at_eof();
 
-void tokenize();
+void tokenize(char *filename, char *input);
 
 // Parser
 

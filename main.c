@@ -1,15 +1,14 @@
 #include "mmcc.h"
 
-char *filename;
-char *user_input;
+void nop() {}
 
 int main(int argc, char **argv) {
     if (argc != 2)
         error("wrong the number of arguments\n");
-    filename = argv[1];
-    user_input = read_file(filename);
+    char *filename = argv[1];
+    char *user_input = read_file(filename);
 
-    tokenize(); // tokenize input
+    tokenize(filename, user_input); // tokenize input
     program();  // parse tokens into AST
     codegen();  // emit code from AST
 
