@@ -326,6 +326,10 @@ int main() {
     ext2 = &ext1;
     assert(5, *ext2, "*ext2");
 
+    assert(0, 12%2, "12%2");
+    assert(5, 17%6, "17%6");
+    assert(10, 5+(26%7), "5+(26%7)");
+
     printf("OK\n");
     return 0;
 }

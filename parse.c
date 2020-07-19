@@ -57,6 +57,7 @@ void check_type(Node *node) {
     case ND_SUB:
     case ND_MUL:
     case ND_DIV:
+    case ND_MOD:
     case ND_AS:
         node->type = node->lhs->type;
         return;
@@ -1093,7 +1094,7 @@ Node *add() {
     }
 }
 
-// mul = cast ( '*' cast | '/' cast )*
+// mul = cast ( '*' cast | '/' cast | '%' cast )*
 Node *mul() {
     Node *node = cast();
 
@@ -1102,6 +1103,8 @@ Node *mul() {
             node = new_node(ND_MUL, node, cast());
         else if (consume("/"))
             node = new_node(ND_DIV, node, cast());
+        else if (consume("%"))
+            node = new_node(ND_MOD, node, cast());
         else
             return node;
     }
