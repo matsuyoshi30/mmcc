@@ -1010,7 +1010,7 @@ Node *compound_assign(Node *node, Nodekind kind) {
     return new_node(ND_COMMA, e1, e2);
 }
 
-// assign = logicOr ( "=" assign | "+=" assign | "-=" assign | "*=" assign | "/=" assign )?
+// assign = logicOr ( "=" assign | "+=" assign | "-=" assign | "*=" assign | "/=" assign | "%=" assign )?
 Node *assign() {
     Node *node = logicOr();
 
@@ -1024,6 +1024,8 @@ Node *assign() {
         node = compound_assign(node, ND_MUL);
     if (consume("/="))
         node = compound_assign(node, ND_DIV);
+    if (consume("%="))
+        node = compound_assign(node, ND_MOD);
 
     return node;
 }

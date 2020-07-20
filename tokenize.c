@@ -199,7 +199,7 @@ char *is_type(char *c) {
 }
 
 char *is_assign(char *c) {
-    char *ops[] = {"+=", "-=", "*=", "/="};
+    char *ops[] = {"+=", "-=", "*=", "/=", "%="};
 
     for (int i=0; i<sizeof(ops)/sizeof(*ops); i++) {
         int len = strlen(ops[i]);

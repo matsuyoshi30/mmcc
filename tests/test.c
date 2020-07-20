@@ -329,6 +329,7 @@ int main() {
     assert(0, 12%2, "12%2");
     assert(5, 17%6, "17%6");
     assert(10, 5+(26%7), "5+(26%7)");
+    assert(2, ({ int i=10; i%=4; i; }), "{ int i=10; i%=4; i; }");
 
     printf("OK\n");
     return 0;
