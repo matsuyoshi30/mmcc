@@ -42,11 +42,11 @@
 - [x] switch case
 - [x] type cast
 - [x] type keyword 'short' and 'long'
-- extern
+- [x] extern
+- [x] top-level typename-only declaration
 - local variable initializer
 - global variable initializer
 - string literal initializer
-- top-level typename-only declaration
 - static local variable
 - static global variable
 - compound literal
@@ -75,7 +75,8 @@ stmt          = "return" expr? ";"
               | expr_stmt ";"
 typedefs      = "typedef" basetype declarator ( "," declarator )* ";"
 declaration   = basetype declarator ( "=" expr )? ( "," declarator ( "=" expr )? )* ";"
-is_typename   = "int" | "char" | "short" | "long" | "struct" | "void" | typedef_name | "enum"
+is_typename   = "int" | "char" | "short" | "long" | "_Bool"
+              | "struct" | "void" | typedef_name | "enum"
 basetype      = is_typename | typedef_name
 declarator    = "*"* ( "(" declarator ")" | ident ) ( type_suffix )?
 type_suffix   = ( "[" num "]" ( type_suffix )? )?
@@ -91,12 +92,13 @@ logicAnd      = equality ( "&&" equality )?
 equality      = relational ( "==" relational | "!=" relational )*
 relational    = add ( ">" add | "<" add | ">=" add | "<=" add )*
 add           = mul ( "+" mul | "-" mul )*
-mul           = cast ( '*' cast | '/' cast )*
+mul           = cast ( '*' cast | '/' cast | '%' cast )*
 cast          = "(" typename ")" cast | unary
 unary         = ( '+' | '-' )? cast
               | ( '&' | '*' | '!' )? cast
               | ( "++" | "--" ) unary
-              | "sizeof" unary | postfix
+              | "sizeof" unary
+              | postfix
 postfix       = primary ( ( "[" expr "]" ) | ( "." ident ) | ( "->" ident ) )*
 primary       = '(' '{' stmt ( stmt )* '}' ')' // last stmt should be expr_stmt
               | '(' expr ')'
