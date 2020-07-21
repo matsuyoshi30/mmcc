@@ -813,9 +813,13 @@ Type *abstract_declarator(Type *basetype) {
     return type_suffix(type);
 }
 
-// type_suffix = ( "[" num "]" ( type_suffix )? )?
+// type_suffix = ( "[" num? "]" ( type_suffix )? )?
 Type *type_suffix(Type *ty) {
     if (consume("[")) {
+        if (consume("]")) {
+            ty = type_suffix(ty);
+            return array_of(ty, 0);
+        }
         int num = expect_number();
         expect("]");
         ty = type_suffix(ty);

@@ -331,6 +331,9 @@ int main() {
     assert(10, 5+(26%7), "5+(26%7)");
     assert(2, ({ int i=10; i%=4; i; }), "{ int i=10; i%=4; i; }");
 
+    assert(8, sizeof(int(*)[]), "sizeof(int(*)[])");
+    assert(8, sizeof(int(*)[][10]), "sizeof(int(*)[][10])");
+
     printf("OK\n");
     return 0;
 }
