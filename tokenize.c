@@ -244,6 +244,7 @@ int num_of_digits(int n) {
 
 void tokenize(char *filename, char *input) {
     cur_filename = filename;
+    cur_input = input;
 
     Token head;
     head.next = NULL;
