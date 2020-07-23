@@ -74,7 +74,7 @@ stmt          = "return" expr? ";"
               | declaration
               | expr_stmt ";"
 typedefs      = "typedef" basetype declarator ( "," declarator )* ";"
-declaration   = basetype declarator ( "=" expr )? ( "," declarator ( "=" expr )? )* ";"
+declaration   = basetype declarator ( "=" ( expr | array_expr ) )? ( "," declarator ( "=" ( expr | array_expr ) )? )* ";"
 is_typename   = "int" | "char" | "short" | "long" | "_Bool"
               | "struct" | "void" | typedef_name | "enum"
 basetype      = is_typename | typedef_name
