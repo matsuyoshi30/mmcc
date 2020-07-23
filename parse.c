@@ -71,10 +71,8 @@ void check_type(Node *node) {
             node->type = pointer_to(node->lhs->type);
         return;
     case ND_DEREF:
-        if (!node->lhs->type->ptr_to) {
-            nop();
+        if (!node->lhs->type->ptr_to)
             error("invalid pointer dereference");
-        }
         node->type = node->lhs->type->ptr_to;
         return;
     case ND_STMT_EXPR: {
@@ -691,7 +689,7 @@ Node *typedefs() {
     return node;
 }
 
-// declaration = basetype declarator ( "=" expr )? ( "," declarator ( "=" expr )? )* ";"
+// declaration = basetype declarator ( "=" ( expr | array_expr ) )? ( "," declarator ( "=" ( expr | array_expr ) )? )* ";"
 Node *declaration() {
     Node head;
     head.next = NULL;
@@ -714,10 +712,40 @@ Node *declaration() {
         node->var = var;
 
         if (consume("=")) {
-            Node *n = calloc(1, sizeof(Node));
-            n->kind = ND_EXPR_STMT;
-            n->lhs = new_node(ND_AS, node, assign());
-            cur->next = n;
+            check_type(node);
+            // e.g.) int x[] = {1, 2, 3, 4};
+            // => int x[4]; x[0] = 1, x[1] = 2, x[2] = 3, x[3] = 4;
+            if (type->kind == TY_ARR) {
+                Node *arr = node;
+                cur->next = arr;
+                cur = cur->next;
+
+                expect("{");
+                int i = 0;
+                Node *def = calloc(1, sizeof(Node));
+                while (!consume("}")) {
+                    if (i > 0)
+                        expect(",");
+
+                    Node *elem = assign();
+                    check_type(elem);
+                    if (type->ptr_to->kind != elem->type->kind)
+                        error_at(token->str, "invalid element type of array");
+
+                    node = new_node(ND_COMMA, node, new_node(ND_AS, new_node_deref(new_add(arr, new_node_num(i))), elem));
+
+                    i++;
+                }
+                arr->type->size_array = i;
+                arr->type->size = i * type->ptr_to->size;
+
+                cur->next = node;
+            } else {
+                Node *n = calloc(1, sizeof(Node));
+                n->kind = ND_EXPR_STMT;
+                n->lhs = new_node(ND_AS, node, assign());
+                cur->next = n;
+            }
         } else {
             cur->next = node;
         }
