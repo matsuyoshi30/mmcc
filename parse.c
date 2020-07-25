@@ -348,6 +348,7 @@ Type *enum_decl();
 Node *expr_stmt();
 Node *expr();
 Node *assign();
+Node *conditional();
 Node *logicOr();
 Node *logicAnd();
 Node *equality();
@@ -1042,9 +1043,9 @@ Node *compound_assign(Node *node, Nodekind kind) {
     return new_node(ND_COMMA, e1, e2);
 }
 
-// assign = logicOr ( "=" assign | "+=" assign | "-=" assign | "*=" assign | "/=" assign | "%=" assign )?
+// assign = conditional ( "=" assign | "+=" assign | "-=" assign | "*=" assign | "/=" assign | "%=" assign )?
 Node *assign() {
-    Node *node = logicOr();
+    Node *node = conditional();
 
     if (consume("="))
         node = new_node(ND_AS, node, assign());
@@ -1058,6 +1059,25 @@ Node *assign() {
         node = compound_assign(node, ND_DIV);
     if (consume("%="))
         node = compound_assign(node, ND_MOD);
+
+    return node;
+}
+
+// conditional = logicOr ( "?" expr ":" conditional )?
+Node *conditional() {
+    Node *node = logicOr();
+
+    if (consume("?")) {
+        Node *node2 = calloc(1, sizeof(Node));
+        node2->kind = ND_COND;
+        node2->cond = node;
+        check_type(node2->cond);
+        node2->then = expr();
+        expect(":");
+        node2->els = conditional();
+        check_type(node2->els);
+        return node2;
+    }
 
     return node;
 }

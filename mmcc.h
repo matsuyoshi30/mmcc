@@ -105,6 +105,7 @@ typedef enum {
     ND_SWITCH,
     ND_CASE,
     ND_CAST,
+    ND_COND,
     ND_BLOCK, // {...}
     ND_FUNC,
     ND_EXPR_STMT,

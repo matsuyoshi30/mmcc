@@ -106,6 +106,19 @@ void gen_expr(Node *node) {
         printf("  movzb rax, al\n");
         printf("  push rax\n");
         return;
+    case ND_COND: {
+        int seq = labels++;
+        gen_expr(node->cond);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  je .Lelse.%d\n", seq);
+        gen_expr(node->then);
+        printf("  jmp .Lend.%d\n", seq);
+        printf(".Lelse.%d:\n", seq);
+        gen_expr(node->els);
+        printf(".Lend.%d:\n", seq);
+        return;
+    }
     case ND_LOGOR: {
         int seq = labels++;
         gen_expr(node->lhs);
