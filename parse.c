@@ -1,5 +1,7 @@
 #include "mmcc.h"
 
+/// type
+
 Type *void_type = &(Type){TY_VOID};
 Type *char_type = &(Type){TY_CHAR, 1};
 Type *short_type = &(Type){TY_SHORT, 2};
@@ -7,10 +9,6 @@ Type *int_type = &(Type){TY_INT, 4};
 Type *long_type = &(Type){TY_LONG, 8};
 Type *bool_type = &(Type){TY_BOOL, 1};
 Type *enum_type = &(Type){TY_ENUM, 4};
-
-static int lc = 0;
-
-// Parser
 
 bool is_integer(Type *type) {
     return type->kind == TY_INT || type->kind == TY_CHAR
@@ -94,6 +92,8 @@ void check_type(Node *node) {
         return;
     }
 }
+
+/// parser
 
 Node *new_node(Nodekind kind, Node *lhs, Node *rhs) {
     Node *node = calloc(1, sizeof(Node));
@@ -202,13 +202,13 @@ Node *new_sub(Node *lhs, Node *rhs) {
     check_type(lhs);
     check_type(rhs);
 
-    // num + num
+    // num - num
     if (is_integer(lhs->type) && is_integer(rhs->type))
         return new_node(ND_SUB, lhs, rhs);
-    // ptr + ptr
+    // ptr - ptr
     if (lhs->type->ptr_to && rhs->type->ptr_to)
         error_at(token->str, "invalid operands");
-    // ptr + num
+    // ptr - num
     rhs = new_node(ND_MUL, rhs, new_node_num(lhs->type->ptr_to->size));
 
     return new_node(ND_SUB, lhs, rhs);
@@ -287,6 +287,7 @@ Type *find_type(Token *tok) {
 }
 
 Var *strs;
+static int lc = 0;
 
 Var *new_str(Token *token) {
     Var *string = calloc(1, sizeof(Var));
@@ -370,7 +371,7 @@ Node *primary();
 Node *funcargs();
 Node *read_array();
 
-// program = ( basetype ident ( function | gvar ";" ) )*
+// program = ( basetype ident ( function | gvar ";" ) )* | typedefs
 void program() {
     Function head;
     head.next = NULL;
@@ -638,8 +639,9 @@ Node *stmt() {
     }
 
     if (consume("goto")) {
+        Token *tok = consume_ident();
         node = new_node_goto();
-        node->labelname = expect_ident();
+        node->labelname = strndup(tok->str, tok->len);
         expect(";");
         return node;
     }
@@ -665,7 +667,6 @@ Node *stmt() {
         check_type(node);
         return node;
     }
-
 
     node = expr_stmt();
     expect(";");
@@ -828,7 +829,8 @@ Type *declarator(Type *basetype) {
         *placeholder = *type_suffix(type);
         return nestedType;
     }
-    char *name = expect_ident();
+    Token *tok = consume_ident();
+    char *name = strndup(tok->str, tok->len);
     type = type_suffix(type);
     type->name = name;
 
@@ -991,7 +993,8 @@ Type *enum_decl() {
         if (num > 0)
             expect(",");
 
-        char *name = expect_ident();
+        Token *tok = consume_ident();
+        char *name = strndup(tok->str, tok->len);
         Var *var = new_lvar(enum_type, name);
         var->offset = locals->offset + var->type->size;
 
@@ -1001,7 +1004,7 @@ Type *enum_decl() {
 
         var->enum_val = val++;
 
-        Token *tok = token;
+        tok = token;
         if (consume(",") && peek("}")) {
             consume("}");
             break;
@@ -1269,14 +1272,16 @@ Node *postfix() {
 
         if (consume(".")) {
             // access struct member
-            char *ident = expect_ident();
+            Token *tok = consume_ident();
+            char *ident = strndup(tok->str, tok->len);
             node = struct_ref(node, ident);
             continue;
         }
 
         if (consume("->")) {
             // b->n => (*b).n
-            char *ident = expect_ident();
+            Token *tok = consume_ident();
+            char *ident = strndup(tok->str, tok->len);
             node = struct_ref(new_node_deref(node), ident);
             continue;
         }

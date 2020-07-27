@@ -1,6 +1,6 @@
 #include "mmcc.h"
 
-// Code generator
+/// Code generator
 
 static char *funcname;
 static int labels = 1;
@@ -183,9 +183,9 @@ void gen_expr(Node *node) {
         }
 
         if (node->type->size == 1)
-            printf("  mov [rax], dil\n");
+            printf("  mov [rax], dil\n"); // store value from dil into the address in rax
         else if (node->type->size == 2)
-            printf("  mov [rax], di\n");
+            printf("  mov [rax], di\n");  // store value from di into the address in rax
         else if (node->type->size == 4)
             printf("  mov [rax], edi\n"); // store value from edi into the address in rax
         else

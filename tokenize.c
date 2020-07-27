@@ -78,7 +78,7 @@ char *read_file(char *path) {
     return buf;
 }
 
-// Tokenizer
+/// Tokenizer
 
 Token *token;
 
@@ -106,7 +106,7 @@ Token *consume_ident() {
     return tok;
 }
 
-// consume the current token if it is string
+// consume the current token if it is string literal
 Token *consume_str() {
     if (token->kind != TK_STR)
         return NULL;
@@ -129,15 +129,6 @@ int expect_number() {
     int val = token->val;
     token = token->next;
     return val;
-}
-
-// check whether the current token is ident
-char *expect_ident() {
-    if (token->kind != TK_IDENT)
-        error_at(token->str, "expected identifier\n");
-    char *name = strndup(token->str, token->len);
-    token = token->next;
-    return name;
 }
 
 // check whether the current token is EOF
@@ -163,7 +154,9 @@ bool is_alnum(char c) {
 }
 
 char *is_reserved(char *c) {
-    char *kw[] = {"return", "if", "else", "while", "for", "sizeof", "typedef", "break", "continue", "goto", "switch", "case", "default", "static", "extern"};
+    char *kw[] = {"return", "if", "else", "while", "for",
+                  "switch", "case", "default", "break", "continue", "goto",
+                  "sizeof", "typedef", "static", "extern"};
     for (int i=0; i<sizeof(kw)/sizeof(*kw); i++) {
         int len = strlen(kw[i]);
         if (strncmp(c, kw[i], len) == 0 && !is_alnum(c[len]))
@@ -312,6 +305,7 @@ void tokenize(char *filename, char *input) {
             continue;
         }
 
+        // read character
         if (*p == '\'') {
             char *start = p + 1;
 
@@ -333,6 +327,7 @@ void tokenize(char *filename, char *input) {
             continue;
         }
 
+        // read string literal
         if (*p == '"') {
             char *start = p + 1;
             char *end = start;

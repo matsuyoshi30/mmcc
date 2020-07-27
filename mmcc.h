@@ -18,24 +18,35 @@ char *read_file(char *path);
 
 typedef enum {
     TK_RESERVED,
-    TK_IDENT,
-    TK_STR,
-    TK_NUM,
-    TK_EOF,
+    TK_IDENT, // identifier
+    TK_STR,   // string literal
+    TK_NUM,   // integer literal
+    TK_EOF,   // end-of-file
 } Tokenkind;
 
 typedef struct Token Token;
-
 struct Token {
-    Tokenkind kind;
-    Token *next;
-    int val;
-    char *str;
-    int len;
-    int strlen;
+    Tokenkind kind; // token kind
+    Token *next;    // next token
+    int val;        // value (TK_NUM)
+    char *str;      // token string
+    int len;        // token length
+    int strlen;     // string literal length
 };
 
 extern Token *token;
+
+bool consume(char *op);
+bool peek(char *op);
+Token *consume_ident();
+Token *consume_str();
+void expect(char *op);
+int expect_number();
+bool at_eof();
+
+void tokenize(char *filename, char *input);
+
+// type
 
 typedef enum {
     TY_VOID,
@@ -54,154 +65,151 @@ typedef struct Type Type;
 typedef struct Member Member;
 
 struct Type {
-    Typekind kind;
-    int size;
-    struct Type *ptr_to;
-    int size_array;
+    Typekind kind;       // type kind
+    int size;            // type size
+    struct Type *ptr_to; // pointer or array
+    int size_array;      // array
 
+    // declaration
     char *name;
 
-    Member *members; // for access struct members
+    // access struct members
+    Member *members;
 };
-
-bool consume(char *op);
-bool peek(char *op);
-Token *consume_ident();
-Token *consume_str();
-void expect(char *op);
-int expect_number();
-char *expect_ident();
-bool at_eof();
-
-void tokenize(char *filename, char *input);
 
 // Parser
 
 typedef enum {
-    ND_ADD,
-    ND_SUB,
-    ND_MUL,
-    ND_DIV,
-    ND_MOD,
-    ND_EQ, // ==
-    ND_NE, // !=
-    ND_MT, // >
-    ND_LT, // <
-    ND_OM, // >=
-    ND_OL, // <=
-    ND_AS, // =
-    ND_LV, // local variable
-    ND_ADDR,  // &
-    ND_DEREF, // *
-    ND_NOT,   // !
-    ND_LOGOR,  // ||
-    ND_LOGAND, // &&
-    ND_IF,
-    ND_FOR,
-    ND_BREAK,
-    ND_CONT,
-    ND_GOTO,
-    ND_LABEL,
-    ND_SWITCH,
-    ND_CASE,
-    ND_CAST,
-    ND_COND,
-    ND_BLOCK, // {...}
-    ND_FUNC,
-    ND_EXPR_STMT,
-    ND_STMT_EXPR,
-    ND_NULL_EXPR,
-    ND_COMMA,
-    ND_MEMBER,
-    ND_RET,
-    ND_STR,
-    ND_NUM,
+    ND_ADD,       // +
+    ND_SUB,       // -
+    ND_MUL,       // *
+    ND_DIV,       // /
+    ND_MOD,       // %
+    ND_EQ,        // ==
+    ND_NE,        // !=
+    ND_MT,        // >
+    ND_LT,        // <
+    ND_OM,        // >=
+    ND_OL,        // <=
+    ND_AS,        // =
+    ND_LV,        // local variable
+    ND_ADDR,      // &
+    ND_DEREF,     // *
+    ND_NOT,       // !
+    ND_LOGOR,     // ||
+    ND_LOGAND,    // &&
+    ND_IF,        // "if"
+    ND_FOR,       // "for"
+    ND_BREAK,     // "break"
+    ND_CONT,      // "continue"
+    ND_GOTO,      // "goto"
+    ND_LABEL,     // labelded statement
+    ND_SWITCH,    // "switch"
+    ND_CASE,      // "case"
+    ND_CAST,      // type cast
+    ND_COND,      // ?:
+    ND_BLOCK,     // {...}
+    ND_FUNC,      // function
+    ND_EXPR_STMT, // expression statement
+    ND_STMT_EXPR, // statement expression
+    ND_NULL_EXPR, // empty statement
+    ND_COMMA,     // ,
+    ND_MEMBER,    // struct member
+    ND_RET,       // "return"
+    ND_STR,       // string
+    ND_NUM,       // number
 } Nodekind;
 
 typedef struct Var Var;
-
 struct Var {
-    Type *type;
-    Var *next;
-    char *name;
-    int offset;
+    Type *type;   // variable type
+    Var *next;    // next variable
+    char *name;   // variable name
 
+    // local variable
+    int offset;
     bool is_local;
 
+    // string literal
     char *str;
     int lc;
 
-    int enum_val; // for enum
+    // enum
+    int enum_val;
 };
 
 typedef struct VarScope VarScope;
-
 struct VarScope {
-    VarScope *next;
-    int depth;
+    VarScope *next; // next variable scope
+    int depth;      // variable scope depth
     Var *var;
     char *name;
     Type *def_type;
 };
 
 typedef struct Tag Tag;
-
 struct Tag {
-    Tag *next;
-    char *name;
-    Type *type;
+    Tag *next;  // next tag
+    char *name; // tag name
+    Type *type; // tag type
 };
 
 typedef struct TagScope TagScope;
-
 struct TagScope {
-    TagScope *next;
-    int depth;
+    TagScope *next; // next tag scope
+    int depth;      // tag scope depth
     Tag *tag;
 };
 
 struct Member {
-    Member *next;
-    Type *type;
-    char *name;
-    int offset;
+    Member *next; // next member
+    Type *type;   // member type
+    char *name;   // member name
+    int offset;   // member offset
 };
 
 typedef struct Node Node;
-
 struct Node {
-    Nodekind kind;
-    Type *type;
-    Node *next;
+    Nodekind kind; // node kind
+    Type *type;    // node type
+    Node *next;    // next node
 
-    Node *lhs;
-    Node *rhs;
+    Node *lhs;     // left-hand side node
+    Node *rhs;     // right-hand side node
 
-    int val;    // for ND_NUM
+    // integer
+    int val;
+
+    // variable
     Var *var;
 
+    // "if", "for" or "while" statement
     Node *cond;
     Node *then;
     Node *els;
     Node *preop;
     Node *postop;
 
-    Node *blocks; // for ND_BLOCK or ND_STMT_EXPR
+    // { ... } or statement expression
+    Node *blocks;
 
-    Member *member; // for ND_MEMBER
+    // struct member
+    Member *member;
 
+    // "goto" or labeled statement
     char *labelname;
 
+    // switch-case
     Node *next_case;
     Node *default_case;
     int case_label;
 
+    // function
     char *funcname;
     Node *args;
 };
 
 typedef struct Function Function;
-
 struct Function {
     Function *next;
     Type *type;
