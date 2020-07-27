@@ -141,6 +141,12 @@ Node *new_node_deref(Node *target) {
     return node;
 }
 
+Node *new_node_null_expr() {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_NULL_EXPR;
+    return node;
+}
+
 Node *new_node_not(Node *target) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_NOT;
@@ -733,14 +739,18 @@ Node *declaration() {
                     if (type->ptr_to->kind != elem->type->kind)
                         error_at(token->str, "invalid element type of array");
 
-                    node = new_node(ND_COMMA, node, new_node(ND_AS, new_node_deref(new_add(arr, new_node_num(i))), elem));
+                    if (i == 0)
+                        def = new_node(ND_AS, new_node_deref(new_add(arr, new_node_num(0))), elem);
+                    else
+                        def = new_node(ND_COMMA, def, new_node(ND_AS, new_node_deref(new_add(arr, new_node_num(i))), elem));
 
                     i++;
                 }
+                def = new_node(ND_COMMA, def, new_node_null_expr());
                 arr->type->size_array = i;
                 arr->type->size = i * type->ptr_to->size;
 
-                cur->next = node;
+                cur->next = def;
             } else {
                 Node *n = calloc(1, sizeof(Node));
                 n->kind = ND_EXPR_STMT;

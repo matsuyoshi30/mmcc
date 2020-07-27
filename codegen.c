@@ -198,6 +198,8 @@ void gen_expr(Node *node) {
             gen_stmt(block);
         printf("  push rax\n");
         return;
+    case ND_NULL_EXPR:
+        return;
     case ND_COMMA:
         gen_expr(node->lhs);
         printf("  pop rax\n");

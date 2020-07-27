@@ -110,6 +110,7 @@ typedef enum {
     ND_FUNC,
     ND_EXPR_STMT,
     ND_STMT_EXPR,
+    ND_NULL_EXPR,
     ND_COMMA,
     ND_MEMBER,
     ND_RET,
