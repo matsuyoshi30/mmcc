@@ -44,6 +44,7 @@
 - [x] type keyword 'short' and 'long'
 - [x] extern
 - [x] top-level typename-only declaration
+- [x] ?: operator
 - local variable initializer
 - global variable initializer
 - string literal initializer
