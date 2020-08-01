@@ -97,6 +97,14 @@ bool peek(char *op) {
     return true;
 }
 
+// check the current token if it matches list end
+bool peek_end() {
+    Token *tok = token;
+    bool ret = consume("}") || (consume(",") && consume("}"));
+    token = tok;
+    return ret;
+}
+
 // consume the current token if it is identifier
 Token *consume_ident() {
     if (token->kind != TK_IDENT)

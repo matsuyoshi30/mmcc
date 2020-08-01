@@ -697,20 +697,78 @@ Node *typedefs() {
     return node;
 }
 
-// declaration = basetype declarator ( "=" ( expr | array_expr ) )? ( "," declarator ( "=" ( expr | array_expr ) )? )* ";"
+// local variable initializer
+
+typedef struct Designator Designator;
+struct Designator {
+    Designator *next;
+    int idx;
+};
+
+Node *new_designator_helper(Var *var, Designator *desg) {
+    if (!desg)
+        return new_node_var(var);
+
+    Node *node = new_designator_helper(var, desg->next);
+    node = new_add(node, new_node_num(desg->idx));
+    return new_node_deref(node);
+}
+
+Node *new_designator(Var *var, Designator *desg, Node *rhs) {
+    Node *lhs = new_designator_helper(var, desg);
+    Node *node = new_node(ND_AS, lhs, rhs);
+
+    Node *ret = calloc(1, sizeof(Node));
+    ret->kind = ND_EXPR_STMT;
+    ret->lhs = node;
+    return ret;
+}
+
+Node *lvar_initializer_helper(Node *cur, Var *var, Type *type, Designator *desg) {
+    if (type->kind == TY_ARR) {
+        expect("{");
+        int i = 0;
+
+        do {
+            Designator desg2 = {desg, i++};
+            cur = lvar_initializer_helper(cur, var, type->ptr_to, &desg2);
+        } while (!peek_end() && consume(","));
+
+        if (consume(","))
+            expect("}");
+        else
+            expect("}");
+        return cur;
+    }
+
+    cur->next = new_designator(var, desg, assign());
+    return cur->next;
+}
+
+Node *lvar_initializer(Var *var) {
+    Node head;
+    lvar_initializer_helper(&head, var, var->type, NULL);
+
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_BLOCK;
+    node->blocks = head.next;
+    return node;
+}
+
+// declaration = basetype declarator ( "=" ( lvar_initializer ) )? ( "," declarator ( "=" ( lvar_initializer ) )? )* ";"
 Node *declaration() {
     Node head;
     head.next = NULL;
     Node *cur = &head;
 
-    Type *ty = basetype();
+    Type *base = basetype();
 
     int num = 0;
     while (!consume(";")) {
         if (num > 0)
             expect(",");
 
-        Type *type = declarator(ty);
+        Type *type = declarator(base);
 
         Var *var = new_lvar(type, type->name);
         var->offset = locals->offset + type->size;
@@ -720,44 +778,7 @@ Node *declaration() {
         node->var = var;
 
         if (consume("=")) {
-            check_type(node);
-            // e.g.) int x[] = {1, 2, 3, 4};
-            // => int x[4]; x[0] = 1, x[1] = 2, x[2] = 3, x[3] = 4;
-            if (type->kind == TY_ARR) {
-                Node *arr = node;
-                cur->next = arr;
-                cur = cur->next;
-
-                expect("{");
-                int i = 0;
-                Node *def = calloc(1, sizeof(Node));
-                while (!consume("}")) {
-                    if (i > 0)
-                        expect(",");
-
-                    Node *elem = assign();
-                    check_type(elem);
-                    if (type->ptr_to->kind != elem->type->kind)
-                        error_at(token->str, "invalid element type of array");
-
-                    if (i == 0)
-                        def = new_node(ND_AS, new_node_deref(new_add(arr, new_node_num(0))), elem);
-                    else
-                        def = new_node(ND_COMMA, def, new_node(ND_AS, new_node_deref(new_add(arr, new_node_num(i))), elem));
-
-                    i++;
-                }
-                def = new_node(ND_COMMA, def, new_node_null_expr());
-                arr->type->size_array = i;
-                arr->type->size = i * type->ptr_to->size;
-
-                cur->next = def;
-            } else {
-                Node *n = calloc(1, sizeof(Node));
-                n->kind = ND_EXPR_STMT;
-                n->lhs = new_node(ND_AS, node, assign());
-                cur->next = n;
-            }
+            cur->next = lvar_initializer(var);
         } else {
             cur->next = node;
         }

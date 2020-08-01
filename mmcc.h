@@ -38,6 +38,7 @@ extern Token *token;
 
 bool consume(char *op);
 bool peek(char *op);
+bool peek_end();
 Token *consume_ident();
 Token *consume_str();
 void expect(char *op);
