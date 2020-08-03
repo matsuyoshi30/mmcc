@@ -337,6 +337,51 @@ void leave_scope() {
         tagscope = tagscope->next;
 }
 
+// evaluate constant expression
+
+int eval(Node *node) {
+  switch (node->kind) {
+  case ND_ADD:
+    return eval(node->lhs) + eval(node->rhs);
+  case ND_SUB:
+    return eval(node->lhs) - eval(node->rhs);
+  case ND_MUL:
+    return eval(node->lhs) * eval(node->rhs);
+  case ND_DIV:
+    return eval(node->lhs) / eval(node->rhs);
+  case ND_MOD:
+    return eval(node->lhs) % eval(node->rhs);
+  case ND_EQ:
+    return eval(node->lhs) == eval(node->rhs);
+  case ND_NE:
+    return eval(node->lhs) != eval(node->rhs);
+  case ND_MT:
+    return eval(node->lhs) > eval(node->rhs);
+  case ND_LT:
+    return eval(node->lhs) < eval(node->rhs);
+  case ND_OM:
+    return eval(node->lhs) >= eval(node->rhs);
+  case ND_OL:
+    return eval(node->lhs) <= eval(node->rhs);
+  case ND_NOT:
+    return !eval(node->lhs);
+  case ND_LOGOR:
+    return eval(node->lhs) || eval(node->rhs);
+  case ND_LOGAND:
+    return eval(node->lhs) && eval(node->rhs);
+  case ND_COND:
+    return eval(node->cond) ? eval(node->then) : eval(node->els);
+  case ND_COMMA:
+    return eval(node->rhs);
+  case ND_NUM:
+    return node->val;
+  }
+
+  error_at(token->str, "invalid constant expression");
+}
+
+int const_expr();
+
 Function *code;
 
 void program();
@@ -486,7 +531,7 @@ Var *funcparams() {
 //        | "while" "(" expr ")" stmt
 //        | "for" "(" expr_stmt? ";" expr? ";" expr_stmt? ")" stmt
 //        | "switch" "(" expr ")" stmt
-//        | "case" num ":" stmt
+//        | "case" const_expr ":" stmt
 //        | "default" ":" stmt
 //        | "break" ";"
 //        | "continue" ";"
@@ -611,7 +656,7 @@ Node *stmt() {
     if (consume("case")) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_CASE;
-        node->val = expect_number();
+        node->val = const_expr();
         expect(":");
         node->lhs = stmt();
         node->next_case = current_switch->next_case;
@@ -875,14 +920,14 @@ Type *abstract_declarator(Type *basetype) {
     return type_suffix(type);
 }
 
-// type_suffix = ( "[" num? "]" ( type_suffix )? )?
+// type_suffix = ( "[" const_expr? "]" ( type_suffix )? )?
 Type *type_suffix(Type *ty) {
     if (consume("[")) {
         if (consume("]")) {
             ty = type_suffix(ty);
             return array_of(ty, 0);
         }
-        int num = expect_number();
+        int num = const_expr();
         expect("]");
         ty = type_suffix(ty);
         return array_of(ty, num);
@@ -989,7 +1034,7 @@ Member *struct_members() {
 }
 
 // enum_decl = ident? "{" enum-list* "}"
-// enum-list = ident ( "=" num )? ( "," ident ( "=" num)? )*
+// enum-list = ident ( "=" const_expr )? ( "," ident ( "=" const_expr )? )*
 Type *enum_decl() {
     Token *tok = consume_ident();
 
@@ -1020,7 +1065,7 @@ Type *enum_decl() {
         var->offset = locals->offset + var->type->size;
 
         if (consume("=")) {
-            val = expect_number();
+            val = const_expr();
         }
 
         var->enum_val = val++;
@@ -1095,6 +1140,10 @@ Node *assign() {
         node = compound_assign(node, ND_MOD);
 
     return node;
+}
+
+int const_expr() {
+  return eval(conditional());
 }
 
 // conditional = logicOr ( "?" expr ":" conditional )?
