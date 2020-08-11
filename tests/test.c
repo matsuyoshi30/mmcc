@@ -350,6 +350,10 @@ int main() {
     assert(4, ({ int x[2][3]={{1,2,3},{4,5,6}}; x[1][0]; }), "int x[2][3]={{1,2,3},{4,5,6}}; x[1][0];");
     assert(6, ({ int x[2][3]={{1,2,3},{4,5,6}}; x[1][2]; }), "int x[2][3]={{1,2,3},{4,5,6}}; x[1][2];");
 
+    assert('a', ({ char x[4]="abc"; x[0]; }), "{ char x[4]=\"abc\"; x[0]; }");
+    assert('c', ({ char x[4]="abc"; x[2]; }), "{ char x[4]=\"abc\"; x[2]; }");
+    assert(0, ({ char x[4]="abc"; x[3]; }), "{ char x[4]=\"abc\"; x[3]; }");
+
     // assert(4, ({ char *x[] = {"foo", "bar", "hoge"}; sizeof(x[0]); }), "{ char *x[] = {\"foo\", \"bar\", \"hoge\"}; sizeof(x[0]); }");
 
     printf("OK\n");

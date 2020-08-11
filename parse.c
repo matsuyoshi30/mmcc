@@ -724,7 +724,44 @@ Node *new_designator(Var *var, Designator *desg, Node *rhs) {
     return ret;
 }
 
+Node *lvar_init_zero(Node *cur, Var *var, Type *type, Designator *desg) {
+  if (type->kind == TY_ARR) {
+    for (int i = 0; i < type->size_array; i++) {
+      Designator desg2 = {desg, i++};
+      cur = lvar_init_zero(cur, var, type->ptr_to, &desg2);
+    }
+    return cur;
+  }
+
+  cur->next = new_designator(var, desg, new_node_num(0));
+  return cur->next;
+}
+
 Node *lvar_initializer_helper(Node *cur, Var *var, Type *type, Designator *desg) {
+    // char array can be initialized by a string literal
+    // e.g.) char x[4] = "foo" -> char x[4] = {'f', 'o', 'o', '\0')
+    if (type->kind == TY_ARR && type->ptr_to->kind == TY_CHAR
+        && token->kind == TK_STR) {
+        Token *tok = consume_str();
+        int len = tok->strlen;
+        if (len > type->size_array)
+            len = type->size_array;
+
+        for (int i=0; i<len; i++) {
+            Designator desg2 = {desg, i};
+            Node *rhs = new_node_num(tok->str[i]);
+            cur->next = new_designator(var, &desg2, rhs);
+            cur = cur->next;
+        }
+
+        for (int i=len; i < type->size_array; i++) {
+            Designator desg2 = {desg, i};
+            cur = lvar_init_zero(cur, var, type->ptr_to, &desg2);
+        }
+
+        return cur;
+    }
+
     if (type->kind == TY_ARR) {
         expect("{");
         int i = 0;
