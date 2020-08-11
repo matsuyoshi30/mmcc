@@ -356,6 +356,11 @@ int main() {
 
     // assert(4, ({ char *x[] = {"foo", "bar", "hoge"}; sizeof(x[0]); }), "{ char *x[] = {\"foo\", \"bar\", \"hoge\"}; sizeof(x[0]); }");
 
+    assert(10, ({ enum { ten=1+2+3+4, }; ten; }), "{ enum { ten=1+2+3+4, }; ten; }");
+    assert(8, ({ int x[1+1]; sizeof(x); }), "{ int x[1+1]; sizeof(x); }");
+    assert(2, ({ char x[1?2:3]; sizeof(x); }), "{ char x[0?2:3]; sizeof(x); }");
+    assert(3, ({ char x[0?2:3]; sizeof(x); }), "{ char x[1?2:3]; sizeof(x); }"); 
+
     printf("OK\n");
     return 0;
 }
