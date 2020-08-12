@@ -430,10 +430,7 @@ void program() {
         if (peek("typedef")) {
             typedefs();
         } else {
-            bool is_static = false;
-            if (consume("static"))
-                is_static = true;
-
+            bool is_static = consume("static");
             bool is_extern = consume("extern");
 
             Type *base = basetype();
