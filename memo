@@ -47,7 +47,7 @@
 - [x] ?: operator
 - [x] local variable initializer
 - global variable initializer
-- string literal initializer
+- [x] string literal initializer
 - static local variable
 - static global variable
 - compound literal
