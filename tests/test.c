@@ -353,13 +353,17 @@ int main() {
     assert('a', ({ char x[4]="abc"; x[0]; }), "{ char x[4]=\"abc\"; x[0]; }");
     assert('c', ({ char x[4]="abc"; x[2]; }), "{ char x[4]=\"abc\"; x[2]; }");
     assert(0, ({ char x[4]="abc"; x[3]; }), "{ char x[4]=\"abc\"; x[3]; }");
+    assert('a', ({ char x[2][4]={"abc","def"}; x[0][0]; }), "{ char x[2][4]=\"abc\",\"def\"}; x[0][0]; }");
+    assert(0, ({ char x[2][4]={"abc","def"}; x[0][3]; }), "{ char x[2][4]=\"abc\",\"def\"}; x[0][3]; }");
+    assert('d', ({ char x[2][4]={"abc","def"}; x[1][0]; }), "{ char x[2][4]=\"abc\",\"def\"}; x[1][0]; }");
+    assert('f', ({ char x[2][4]={"abc","def"}; x[1][2]; }), "{ char x[2][4]=\"abc\",\"def\"}; x[1][2]; }");
 
     // assert(4, ({ char *x[] = {"foo", "bar", "hoge"}; sizeof(x[0]); }), "{ char *x[] = {\"foo\", \"bar\", \"hoge\"}; sizeof(x[0]); }");
 
     assert(10, ({ enum { ten=1+2+3+4, }; ten; }), "{ enum { ten=1+2+3+4, }; ten; }");
     assert(8, ({ int x[1+1]; sizeof(x); }), "{ int x[1+1]; sizeof(x); }");
     assert(2, ({ char x[1?2:3]; sizeof(x); }), "{ char x[0?2:3]; sizeof(x); }");
-    assert(3, ({ char x[0?2:3]; sizeof(x); }), "{ char x[1?2:3]; sizeof(x); }"); 
+    assert(3, ({ char x[0?2:3]; sizeof(x); }), "{ char x[1?2:3]; sizeof(x); }");
 
     printf("OK\n");
     return 0;
