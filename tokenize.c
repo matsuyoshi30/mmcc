@@ -131,10 +131,10 @@ void expect(char *op) {
 }
 
 // check whether the current token is number
-int expect_number() {
+long expect_number() {
     if (token->kind != TK_NUM)
         error_at(token->str, "expected number\n");
-    int val = token->val;
+    long val = token->val;
     token = token->next;
     return val;
 }

@@ -258,6 +258,7 @@ Var *new_gvar(Type *type, char *name, bool is_extern) {
     var->type = type;
     var->name = name;
     var->is_local = false;
+    var->is_static = true;
     push_varscope(name)->var = var;
 
     if (!is_extern) {
@@ -451,7 +452,9 @@ void program() {
                     continue;
                 }
             } else {
-                new_gvar(type, name, is_extern);
+                Var *var = new_gvar(type, name, is_extern);
+                if (consume("="))
+                    var->init_data = expect_number();
                 expect(";");
             }
         }

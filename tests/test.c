@@ -1,8 +1,8 @@
-int assert(int expected, int actual, char *code) {
+int assert(long expected, long actual, char *code) {
     if (expected == actual) {
-        printf("%s => %d\n", code, actual);
+        printf("%s => %ld\n", code, actual);
     } else {
-        printf("%s => %d expected, but got %d\n", code, expected, actual);
+        printf("%s => %ld expected, but got %ld\n", code, expected, actual);
         exit(1);
     }
 
@@ -60,6 +60,11 @@ extern int *ext2;
 int;
 struct {char a; int b;};
 typedef struct { char a; int b; } Ty1;
+
+char initExt1 = 5;
+short initExt2 = 6;
+int initExt3 = 7;
+long initExt4 = 8;
 
 int main() {
     assert(0, 0, "0");
@@ -364,6 +369,11 @@ int main() {
     assert(8, ({ int x[1+1]; sizeof(x); }), "{ int x[1+1]; sizeof(x); }");
     assert(2, ({ char x[1?2:3]; sizeof(x); }), "{ char x[0?2:3]; sizeof(x); }");
     assert(3, ({ char x[0?2:3]; sizeof(x); }), "{ char x[1?2:3]; sizeof(x); }");
+
+    assert(5, initExt1, "initExt1");
+    assert(6, initExt2, "initExt2");
+    assert(7, initExt3, "initExt3");
+    assert(8, initExt4, "initExt4");
 
     printf("OK\n");
     return 0;

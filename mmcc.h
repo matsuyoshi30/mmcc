@@ -28,7 +28,7 @@ typedef struct Token Token;
 struct Token {
     Tokenkind kind; // token kind
     Token *next;    // next token
-    int val;        // value (TK_NUM)
+    long val;        // value (TK_NUM)
     char *str;      // token string
     int len;        // token length
     int strlen;     // string literal length
@@ -42,7 +42,7 @@ bool peek_end();
 Token *consume_ident();
 Token *consume_str();
 void expect(char *op);
-int expect_number();
+long expect_number();
 bool at_eof();
 
 void tokenize(char *filename, char *input);
@@ -130,6 +130,10 @@ struct Var {
     // local variable
     int offset;
     bool is_local;
+
+    // global variable
+    bool is_static;
+    long init_data;
 
     // string literal
     char *str;
