@@ -340,7 +340,7 @@ void leave_scope() {
 
 // evaluate constant expression
 
-int eval(Node *node) {
+long eval(Node *node) {
   switch (node->kind) {
   case ND_ADD:
     return eval(node->lhs) + eval(node->rhs);
@@ -417,23 +417,28 @@ Node *primary();
 Node *funcargs();
 Node *read_array();
 
-char *gvar_initializer(Type *type) {
-    char *buf = calloc(1, type->size);
-    long val = eval(expr());
-    switch (type->size) {
-    case 1:
-        *buf = val;
-        return buf;
-    case 2:
-        *(short *)buf = val;
-        return buf;
-    case 4:
-        *(int *)buf = val;
-        return buf;
-    default:
-        *(long *)buf = val;
-        return buf;
-    }
+// global variable initializer
+
+Initializer *new_init_gval(Initializer *cur, int size, long val) {
+    Initializer *init = calloc(1, sizeof(Initializer));
+    init->size = size;
+    init->val = val;
+    cur->next = init;
+
+    return init;
+}
+
+Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
+    Node *expr = conditional();
+
+    return new_init_gval(cur, type->size, eval(expr));
+}
+
+Initializer *gvar_initializer(Type *type) {
+    Initializer head;
+    gvar_initializer_helper(&head, type);
+
+    return head.next;
 }
 
 // program = ( basetype ident ( function | gvar ";" ) )* | typedefs
@@ -473,7 +478,7 @@ void program() {
             } else {
                 Var *var = new_gvar(type, name, is_extern);
                 if (consume("="))
-                    var->init_data = gvar_initializer(type);
+                    var->initializer = gvar_initializer(type);
                 expect(";");
             }
         }

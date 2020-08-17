@@ -76,7 +76,7 @@ void typecast(Type *type) {
 void gen_expr(Node *node) {
     switch (node->kind) {
     case ND_NUM:
-        printf("  push %d\n", node->val);
+        printf("  push %ld\n", node->val);
         return;
     case ND_LV:
     case ND_MEMBER:
@@ -338,7 +338,7 @@ void gen_stmt(Node *node) {
 
         for (Node *n=node->next_case; n; n=n->next_case) {
             n->case_label = labels++;
-            printf("  cmp rax, %d\n", n->val);
+            printf("  cmp rax, %ld\n", n->val);
             printf("  je .Lcase.%d\n", n->case_label);
         }
 
@@ -403,13 +403,17 @@ void codegen() {
     }
     for (Var *global=globals; global->next; global=global->next) {
         printf("%s:\n", global->name);
-        if (!global->init_data) {
+        if (!global->initializer) {
             printf("  .zero %d\n", global->type->size);
             continue;
         }
 
-        for (int i=0; i<global->type->size; i++)
-            printf("  .byte %d\n", global->init_data[i]);
+        for (Initializer *init=global->initializer; init; init=init->next) {
+            if (init->size == 1)
+                printf("  .byte %ld\n", init->val);
+            else
+                printf("  .%dbyte %ld\n", init->size, init->val);
+        }
     }
 
     printf(".text\n");

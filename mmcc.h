@@ -81,6 +81,40 @@ struct Type {
 
 // Parser
 
+typedef struct Initializer Initializer;
+struct Initializer {
+    Initializer *next;
+
+    // constant expression
+    int size;
+    long val;
+
+    // reference to another global variable
+    char *label;
+};
+
+typedef struct Var Var;
+struct Var {
+    Type *type;   // variable type
+    Var *next;    // next variable
+    char *name;   // variable name
+    bool is_local;
+    bool is_static;
+
+    // local variable
+    int offset;
+
+    // global variable
+    Initializer *initializer;
+
+    // string literal
+    char *str;
+    int lc;
+
+    // enum
+    int enum_val;
+};
+
 typedef enum {
     ND_ADD,       // +
     ND_SUB,       // -
@@ -122,28 +156,6 @@ typedef enum {
     ND_NUM,       // number
 } Nodekind;
 
-typedef struct Var Var;
-struct Var {
-    Type *type;   // variable type
-    Var *next;    // next variable
-    char *name;   // variable name
-
-    // local variable
-    int offset;
-    bool is_local;
-
-    // global variable
-    bool is_static;
-    char *init_data;
-
-    // string literal
-    char *str;
-    int lc;
-
-    // enum
-    int enum_val;
-};
-
 typedef struct VarScope VarScope;
 struct VarScope {
     VarScope *next; // next variable scope
@@ -184,7 +196,7 @@ struct Node {
     Node *rhs;     // right-hand side node
 
     // integer
-    int val;
+    long val;
 
     // variable
     Var *var;
