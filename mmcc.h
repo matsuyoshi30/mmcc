@@ -70,6 +70,7 @@ struct Type {
     int size;            // type size
     struct Type *ptr_to; // pointer or array
     int size_array;      // array
+    bool is_incomplete;  // incomplete type or not
 
     // declaration
     char *name;

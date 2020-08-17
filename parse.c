@@ -807,6 +807,13 @@ Node *lvar_initializer_helper(Node *cur, Var *var, Type *type, Designator *desg)
     if (type->kind == TY_ARR && type->ptr_to->kind == TY_CHAR
         && token->kind == TK_STR) {
         Token *tok = consume_str();
+
+        if (type->is_incomplete) {
+            type->size = tok->strlen;
+            type->size_array = tok->strlen;
+            type->is_incomplete = false;
+        }
+
         int len = tok->strlen;
         if (len > type->size_array)
             len = type->size_array;
@@ -839,6 +846,13 @@ Node *lvar_initializer_helper(Node *cur, Var *var, Type *type, Designator *desg)
             expect("}");
         else
             expect("}");
+
+        if (type->is_incomplete) {
+            type->size = type->ptr_to->size * i;
+            type->size_array = i;
+            type->is_incomplete = false;
+        }
+
         return cur;
     }
 
@@ -978,16 +992,22 @@ Type *abstract_declarator(Type *basetype) {
 
 // type_suffix = ( "[" const_expr? "]" ( type_suffix )? )?
 Type *type_suffix(Type *ty) {
-    if (consume("[")) {
-        if (consume("]")) {
-            ty = type_suffix(ty);
-            return array_of(ty, 0);
-        }
-        int num = const_expr();
+    if (!consume("["))
+        return ty;
+
+    int num;
+    bool is_incomplete = true;
+    if (!consume("]")) {
+        num = const_expr();
+        is_incomplete = false;
         expect("]");
-        ty = type_suffix(ty);
-        return array_of(ty, num);
     }
+
+    ty = type_suffix(ty);
+    if (ty->is_incomplete)
+        error_at(token->str, "incomplete token type");
+    ty = array_of(ty, num);
+    ty->is_incomplete = is_incomplete;
 
     return ty;
 }
