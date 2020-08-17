@@ -133,7 +133,7 @@ struct Var {
 
     // global variable
     bool is_static;
-    long init_data;
+    char *init_data;
 
     // string literal
     char *str;

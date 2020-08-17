@@ -403,10 +403,13 @@ void codegen() {
     }
     for (Var *global=globals; global->next; global=global->next) {
         printf("%s:\n", global->name);
-        if (global->init_data)
-            printf("  .quad %ld\n", global->init_data);
-        else
+        if (!global->init_data) {
             printf("  .zero %d\n", global->type->size);
+            continue;
+        }
+
+        for (int i=0; i<global->type->size; i++)
+            printf("  .byte %d\n", global->init_data[i]);
     }
 
     printf(".text\n");

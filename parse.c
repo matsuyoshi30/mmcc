@@ -417,6 +417,25 @@ Node *primary();
 Node *funcargs();
 Node *read_array();
 
+char *gvar_initializer(Type *type) {
+    char *buf = calloc(1, type->size);
+    long val = eval(expr());
+    switch (type->size) {
+    case 1:
+        *buf = val;
+        return buf;
+    case 2:
+        *(short *)buf = val;
+        return buf;
+    case 4:
+        *(int *)buf = val;
+        return buf;
+    default:
+        *(long *)buf = val;
+        return buf;
+    }
+}
+
 // program = ( basetype ident ( function | gvar ";" ) )* | typedefs
 void program() {
     Function head;
@@ -454,7 +473,7 @@ void program() {
             } else {
                 Var *var = new_gvar(type, name, is_extern);
                 if (consume("="))
-                    var->init_data = expect_number();
+                    var->init_data = gvar_initializer(type);
                 expect(";");
             }
         }
