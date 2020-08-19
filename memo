@@ -46,7 +46,7 @@
 - [x] top-level typename-only declaration
 - [x] ?: operator
 - [x] local variable initializer
-- global variable initializer
+- [x] global variable initializer
 - [x] string literal initializer
 - static local variable
 - static global variable
