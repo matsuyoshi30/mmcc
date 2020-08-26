@@ -409,7 +409,9 @@ void codegen() {
         }
 
         for (Initializer *init=global->initializer; init; init=init->next) {
-            if (init->size == 1)
+            if (init->label)
+                printf("  .quad %s\n", init->label); // another variable's address
+            else if (init->size == 1)
                 printf("  .byte %ld\n", init->val);
             else
                 printf("  .%dbyte %ld\n", init->size, init->val);

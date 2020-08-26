@@ -65,6 +65,7 @@ char initExt1 = 5;
 short initExt2 = 6;
 int initExt3 = 7;
 long initExt4 = 8;
+int *initExt5 = &initExt3;
 
 int main() {
     assert(0, 0, "0");
@@ -375,6 +376,7 @@ int main() {
     assert(6, initExt2, "initExt2");
     assert(7, initExt3, "initExt3");
     assert(8, initExt4, "initExt4");
+    assert(7, *initExt5, "*initExt5");
 
     printf("OK\n");
     return 0;

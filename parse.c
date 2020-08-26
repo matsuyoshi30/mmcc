@@ -428,9 +428,25 @@ Initializer *new_init_gval(Initializer *cur, int size, long val) {
     return init;
 }
 
+Initializer *new_init_glabel(Initializer *cur, char *label) {
+    Initializer *init = calloc(1, sizeof(Initializer));
+    init->label = label;
+    cur->next = init;
+
+    return init;
+}
+
 Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
     Node *expr = conditional();
 
+    // another variable's address
+    if (expr->kind == ND_ADDR) {
+        if (expr->lhs->kind != ND_LV)
+            error_at(token->str, "invalid initializer about variable's address");
+        return new_init_glabel(cur, expr->lhs->var->name);
+    }
+
+    // constant expression
     return new_init_gval(cur, type->size, eval(expr));
 }
 
