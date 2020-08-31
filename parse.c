@@ -296,6 +296,13 @@ Var *new_str(Token *token) {
     string->str = strndup(token->str, token->len);
     string->next = strs;
     string->lc = lc++;
+
+//  char name[8];
+//  snprintf(name, 8, ".LC%d", string->lc);
+    char *name = calloc(1, 20);
+    sprintf(name, ".LC%d", string->lc);
+    string->name = name;
+
     strs = string;
 
     return string;
@@ -428,9 +435,9 @@ Initializer *new_init_gval(Initializer *cur, int size, long val) {
     return init;
 }
 
-Initializer *new_init_glabel(Initializer *cur, char *label) {
+Initializer *new_init_glabel(Initializer *cur, char *labelname) {
     Initializer *init = calloc(1, sizeof(Initializer));
-    init->label = label;
+    init->label = labelname;
     cur->next = init;
 
     return init;
@@ -445,6 +452,10 @@ Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
             error_at(token->str, "invalid initializer about variable's address");
         return new_init_glabel(cur, expr->lhs->var->name);
     }
+
+    // string literal
+    if (expr->kind == ND_LV && expr->var->type->kind == TY_ARR)
+        return new_init_glabel(cur, expr->var->name);
 
     // constant expression
     return new_init_gval(cur, type->size, eval(expr));
