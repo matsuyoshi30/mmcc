@@ -297,10 +297,8 @@ Var *new_str(Token *token) {
     string->next = strs;
     string->lc = lc++;
 
-//  char name[8];
-//  snprintf(name, 8, ".LC%d", string->lc);
-    char *name = calloc(1, 20);
-    sprintf(name, ".LC%d", string->lc);
+    char *name;
+    snprintf(name, 16, ".LC%d", string->lc);
     string->name = name;
 
     strs = string;
