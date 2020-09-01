@@ -433,6 +433,13 @@ Initializer *new_init_gval(Initializer *cur, int size, long val) {
     return init;
 }
 
+Initializer *new_init_zero(Initializer *cur, int size) {
+    for (int i=0; i<size; i++)
+        cur = new_init_gval(cur, 1, 0);
+
+    return cur;
+}
+
 Initializer *new_init_glabel(Initializer *cur, char *labelname) {
     Initializer *init = calloc(1, sizeof(Initializer));
     init->label = labelname;
@@ -442,6 +449,36 @@ Initializer *new_init_glabel(Initializer *cur, char *labelname) {
 }
 
 Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
+    // array
+    if (type->kind == TY_ARR) {
+        expect("{");
+        int elem_cnt = 0;
+
+        if (!peek("}")) {
+            do {
+                cur = gvar_initializer_helper(cur, type->ptr_to);
+                elem_cnt++;
+            } while (!peek_end() && consume(","));
+        }
+
+        if (consume(","))
+            expect("}");
+        else
+            expect("}");
+
+        // padding extra array elements with zero value
+        if (!type->size_array && elem_cnt < type->size_array)
+            cur = new_init_zero(cur, type->ptr_to->size * (type->size_array - elem_cnt));
+
+        if (type->is_incomplete) {
+            type->size = type->ptr_to->size * elem_cnt;
+            type->size_array = elem_cnt;
+            type->is_incomplete = false;
+        }
+
+        return cur;
+    }
+
     Node *expr = conditional();
 
     // another variable's address

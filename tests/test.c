@@ -68,6 +68,9 @@ long initExt4 = 8;
 int *initExt5 = &initExt3;
 char *initExt6 = "abc";
 
+int initExt7[3] = {0, 1, 2};
+char *initExt8[] = {"foo", "bar"};
+
 int main() {
     assert(0, 0, "0");
     assert(42, 42, "42");
@@ -379,6 +382,15 @@ int main() {
     assert(8, initExt4, "initExt4");
     assert(7, *initExt5, "*initExt5");
     assert(0, strcmp(initExt6, "abc"), "strcmp(initExt6, \"abc\")");
+
+    assert(0, initExt7[0], "initExt7[0]");
+    assert(1, initExt7[1], "initExt7[1]");
+    assert(2, initExt7[2], "initExt7[2]");
+
+    assert(0, strcmp(initExt8[0], "foo"), "strcmp(initExt8[0], \"foo\")");
+    assert(0, strcmp(initExt8[1], "bar"), "strcmp(initExt8[1], \"bar\")");
+    assert(0, initExt8[1][3], "initExt8[1][3]");
+    assert(2, sizeof(initExt8) / sizeof(*initExt8), "sizeof(initExt8) / sizeof(*initExt8)");
 
     printf("OK\n");
     return 0;
