@@ -355,11 +355,11 @@ int main() {
     assert(-1, 0?-2:-1, "0?-2:-1");
     assert(-2, 1?-2:-1, "1?-2:-1");
 
-    assert(1, ({ int x[3]={1,2,3}; x[0]; }), "int x[3]={1,2,3}; x[0];");
-    assert(2, ({ int x[3]={1,2,3}; x[1]; }), "int x[3]={1,2,3}; x[0];");
-    assert(2, ({ int x[2][3]={{1,2,3},{4,5,6}}; x[0][1]; }), "int x[2][3]={{1,2,3},{4,5,6}}; x[0][1];");
-    assert(4, ({ int x[2][3]={{1,2,3},{4,5,6}}; x[1][0]; }), "int x[2][3]={{1,2,3},{4,5,6}}; x[1][0];");
-    assert(6, ({ int x[2][3]={{1,2,3},{4,5,6}}; x[1][2]; }), "int x[2][3]={{1,2,3},{4,5,6}}; x[1][2];");
+    assert(1, ({ int x[3]={1,2,3}; x[0]; }), "{ int x[3]={1,2,3}; x[0]; }");
+    assert(2, ({ int x[3]={1,2,3}; x[1]; }), "{ int x[3]={1,2,3}; x[0]; }");
+    assert(2, ({ int x[2][3]={{1,2,3},{4,5,6}}; x[0][1]; }), "{ int x[2][3]={{1,2,3},{4,5,6}}; x[0][1]; }");
+    assert(4, ({ int x[2][3]={{1,2,3},{4,5,6}}; x[1][0]; }), "{ int x[2][3]={{1,2,3},{4,5,6}}; x[1][0]; }");
+    assert(6, ({ int x[2][3]={{1,2,3},{4,5,6}}; x[1][2]; }), "{ int x[2][3]={{1,2,3},{4,5,6}}; x[1][2]; }");
 
     assert('a', ({ char x[4]="abc"; x[0]; }), "{ char x[4]=\"abc\"; x[0]; }");
     assert('c', ({ char x[4]="abc"; x[2]; }), "{ char x[4]=\"abc\"; x[2]; }");
@@ -368,8 +368,6 @@ int main() {
     assert(0, ({ char x[2][4]={"abc","def"}; x[0][3]; }), "{ char x[2][4]=\"abc\",\"def\"}; x[0][3]; }");
     assert('d', ({ char x[2][4]={"abc","def"}; x[1][0]; }), "{ char x[2][4]=\"abc\",\"def\"}; x[1][0]; }");
     assert('f', ({ char x[2][4]={"abc","def"}; x[1][2]; }), "{ char x[2][4]=\"abc\",\"def\"}; x[1][2]; }");
-
-    // assert(4, ({ char *x[] = {"foo", "bar", "hoge"}; sizeof(x[0]); }), "{ char *x[] = {\"foo\", \"bar\", \"hoge\"}; sizeof(x[0]); }");
 
     assert(10, ({ enum { ten=1+2+3+4, }; ten; }), "{ enum { ten=1+2+3+4, }; ten; }");
     assert(8, ({ int x[1+1]; sizeof(x); }), "{ int x[1+1]; sizeof(x); }");
@@ -391,6 +389,10 @@ int main() {
     assert(0, strcmp(initExt8[1], "bar"), "strcmp(initExt8[1], \"bar\")");
     assert(0, initExt8[1][3], "initExt8[1][3]");
     assert(2, sizeof(initExt8) / sizeof(*initExt8), "sizeof(initExt8) / sizeof(*initExt8)");
+
+    assert(8, ({ char *x[] = {"foo", "bar", "hoge"}; sizeof(x[0]); }), "{ char *x[] = {\"foo\", \"bar\", \"hoge\"}; sizeof(x[0]); }");
+    assert(8, ({ char *x[] = {"foo", "bar", "hoge"}; sizeof(x[1]); }), "{ char *x[] = {\"foo\", \"bar\", \"hoge\"}; sizeof(x[1]); }");
+    assert(8, ({ char *x[] = {"foo", "bar", "hoge"}; sizeof(x[2]); }), "{ char *x[] = {\"foo\", \"bar\", \"hoge\"}; sizeof(x[2]); }");
 
     printf("OK\n");
     return 0;
