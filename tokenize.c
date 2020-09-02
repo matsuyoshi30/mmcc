@@ -12,7 +12,8 @@ void error(char *fmt, ...) {
     exit(1);
 }
 
-void error_at(char *loc, char *fmt, ...) {
+// report an error message in the following format and exit
+void verror_at(int line_num, char *loc, char *fmt, ...) {
     va_list arg;
     va_start(arg, fmt);
 
@@ -24,11 +25,6 @@ void error_at(char *loc, char *fmt, ...) {
     while (*end != '\n')
         end++;
 
-    int line_num = 1;
-    for (char *p=cur_input; p<line; p++)
-        if (*p == '\n')
-            line_num++;
-
     int indent = fprintf(stderr, "%s:%d: ", cur_filename, line_num);
     fprintf(stderr, "%.*s\n", (int)(end - line), line);
 
@@ -38,6 +34,23 @@ void error_at(char *loc, char *fmt, ...) {
     vfprintf(stderr, fmt, arg);
     fprintf(stderr, "\n");
     exit(1);
+}
+
+void error_at(char *loc, char *fmt, ...) {
+    int line_no = 1;
+    for (char *p=cur_input; p<loc; p++)
+        if (*p == '\n')
+            line_no++;
+
+    va_list arg;
+    va_start(arg, fmt);
+    verror_at(line_no, loc, fmt, arg);
+}
+
+void error_tok(Token *tok, char *fmt, ...) {
+    va_list arg;
+    va_start(arg, fmt);
+    verror_at(tok->line_no, tok->str, fmt, arg);
 }
 
 char *read_file(char *path) {
@@ -83,11 +96,12 @@ char *read_file(char *path) {
 Token *token;
 
 // consume the current token if it matches 'op'
-bool consume(char *op) {
+Token *consume(char *op) {
     if (token->kind != TK_RESERVED || token->len != strlen(op) || memcmp(token->str, op, token->len))
-        return false;
+        return NULL;
+    Token *tok = token;
     token = token->next;
-    return true;
+    return tok;
 }
 
 // check the current token if it matches 'op'
@@ -126,14 +140,14 @@ Token *consume_str() {
 // check whether the current token matches 'op'
 void expect(char *op) {
     if (token->kind != TK_RESERVED || token->len != strlen(op) || memcmp(token->str, op, token->len))
-        error_at(token->str, "expected '%s'\n", op);
+        error_tok(token, "expected '%s'\n", op);
     token = token->next;
 }
 
 // check whether the current token is number
 long expect_number() {
     if (token->kind != TK_NUM)
-        error_at(token->str, "expected number\n");
+        error_tok(token, "expected number\n");
     long val = token->val;
     token = token->next;
     return val;
@@ -241,6 +255,22 @@ int num_of_digits(int n) {
         cnt++;
     }
     return cnt;
+}
+
+// initialize line number information for all tokens
+void add_line_numbers(Token *tok) {
+    char *p = cur_input;
+    int n = 1;
+
+    do {
+        if (p == tok->str) {
+            tok->line_no = n;
+            tok = tok->next;
+        }
+
+        if (*p == '\n')
+            n++;
+    } while (*p++);
 }
 
 void tokenize(char *filename, char *input) {
@@ -384,5 +414,6 @@ void tokenize(char *filename, char *input) {
     }
 
     new_token(TK_EOF, cur, p, 1);
+    add_line_numbers(head.next);
     token = head.next;
 }

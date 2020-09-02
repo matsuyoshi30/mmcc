@@ -7,13 +7,6 @@
 #include <stdarg.h>
 #include <string.h>
 
-void nop();
-
-void error(char *fmt, ...);
-void error_at(char *loc, char *fmt, ...);
-
-char *read_file(char *path);
-
 // Tokenizer
 
 typedef enum {
@@ -28,15 +21,17 @@ typedef struct Token Token;
 struct Token {
     Tokenkind kind; // token kind
     Token *next;    // next token
-    long val;        // value (TK_NUM)
+    long val;       // value (TK_NUM)
     char *str;      // token string
     int len;        // token length
     int strlen;     // string literal length
+
+    int line_no;    // line number
 };
 
 extern Token *token;
 
-bool consume(char *op);
+Token *consume(char *op);
 bool peek(char *op);
 bool peek_end();
 Token *consume_ident();
@@ -192,6 +187,8 @@ struct Node {
     Type *type;    // node type
     Node *next;    // next node
 
+    Token *tok;    // representative token
+
     Node *lhs;     // left-hand side node
     Node *rhs;     // right-hand side node
 
@@ -249,3 +246,12 @@ void program();
 // Code generator
 
 void codegen();
+
+// Other
+
+void nop();
+
+void error(char *fmt, ...);
+void error_tok(Token *tok, char *fmt, ...);
+
+char *read_file(char *path);
