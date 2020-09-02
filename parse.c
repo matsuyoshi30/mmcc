@@ -1612,10 +1612,10 @@ Node *primary() {
             Var *var;
             if (var = find_var(tok)) {
                 if (var->type->kind == TY_ENUM)
-                    return new_node_num(var->enum_val);
-                return new_node_var(var);
+                    return new_node_num(var->enum_val, tok);
+                return new_node_var(var, tok);
             }
-            error_at(tok->str, "undefined variable");
+            error_tok(tok, "undefined variable");
         }
     }
 
