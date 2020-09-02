@@ -1568,11 +1568,13 @@ Node *primary() {
         if (consume("(")) {
             return new_node_func(strndup(tok->str, tok->len), funcargs());
         } else {
-            Var *var = find_var(tok);
-            if (var->type->kind == TY_ENUM) {
-                return new_node_num(var->enum_val);
+            Var *var;
+            if (var = find_var(tok)) {
+                if (var->type->kind == TY_ENUM)
+                    return new_node_num(var->enum_val);
+                return new_node_var(var);
             }
-            return new_node_var(var);
+            error_at(tok->str, "undefined variable");
         }
     }
 
