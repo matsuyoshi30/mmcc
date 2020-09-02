@@ -22,6 +22,7 @@ struct Token {
     Tokenkind kind; // token kind
     Token *next;    // next token
     long val;       // value (TK_NUM)
+    char *loc;      // token location
     char *str;      // token string
     int len;        // token length
     int strlen;     // string literal length

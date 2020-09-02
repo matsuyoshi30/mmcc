@@ -50,7 +50,7 @@ void error_at(char *loc, char *fmt, ...) {
 void error_tok(Token *tok, char *fmt, ...) {
     va_list arg;
     va_start(arg, fmt);
-    verror_at(tok->line_no, tok->str, fmt, arg);
+    verror_at(tok->line_no, tok->loc, fmt, arg);
 }
 
 char *read_file(char *path) {
@@ -158,9 +158,10 @@ bool at_eof() {
     return token->kind == TK_EOF;
 }
 
-Token *new_token(Tokenkind kind, Token *cur, char *str, int len) {
+Token *new_token(Tokenkind kind, Token *cur, char *loc, char *str, int len) {
     Token *tok = calloc(1, sizeof(Token));
     tok->kind = kind;
+    tok->loc = loc;
     tok->str = str;
     tok->len = len;
     cur->next = tok;
@@ -263,7 +264,7 @@ void add_line_numbers(Token *tok) {
     int n = 1;
 
     do {
-        if (p == tok->str) {
+        if (p == tok->loc) {
             tok->line_no = n;
             tok = tok->next;
         }
@@ -307,39 +308,40 @@ void tokenize(char *filename, char *input) {
 
         char *reserved = is_reserved(p);
         if (reserved) {
-            cur = new_token(TK_RESERVED, cur, p, strlen(reserved));
+            cur = new_token(TK_RESERVED, cur, p, p, strlen(reserved));
             p += strlen(reserved);
             continue;
         }
 
         char *typeword = is_type(p);
         if (typeword) {
-            cur = new_token(TK_RESERVED, cur, p, strlen(typeword));
+            cur = new_token(TK_RESERVED, cur, p, p, strlen(typeword));
             p += strlen(typeword);
             continue;
         }
 
         char *assignment = is_assign(p);
         if (assignment) {
-            cur = new_token(TK_RESERVED, cur, p, strlen(assignment));
+            cur = new_token(TK_RESERVED, cur, p, p, strlen(assignment));
             p += strlen(assignment);
             continue;
         }
 
         if (strncmp(p, "++", 2) == 0 || strncmp(p, "--", 2) == 0) {
-            cur = new_token(TK_RESERVED, cur, p, 2);
+            cur = new_token(TK_RESERVED, cur, p, p, 2);
             p += 2;
             continue;
         }
 
         if (strncmp(p, "->", 2) == 0) {
-            cur = new_token(TK_RESERVED, cur, p, 2);
+            cur = new_token(TK_RESERVED, cur, p, p, 2);
             p += 2;
             continue;
         }
 
         if (strchr("+-*/%(){}[]><=!?,.:;&*", *p)) {
-            cur = new_token(TK_RESERVED, cur, p++, 1);
+            cur = new_token(TK_RESERVED, cur, p, p, 1);
+            p++;
             continue;
         }
 
@@ -358,7 +360,7 @@ void tokenize(char *filename, char *input) {
             if (*start != '\'')
                 error_at(p, "unclosed char");
 
-            cur = new_token(TK_NUM, cur, p, 0);
+            cur = new_token(TK_NUM, cur, p, p, 0);
             cur->val = c;
             cur->len = start - p;
             p += cur->len+1;
@@ -389,7 +391,7 @@ void tokenize(char *filename, char *input) {
             }
             buf[len++] = '\0';
 
-            cur = new_token(TK_STR, cur, buf, end-p);
+            cur = new_token(TK_STR, cur, p, buf, end-p);
             cur->strlen = len;
             p += end-p+1;
             continue;
@@ -399,12 +401,12 @@ void tokenize(char *filename, char *input) {
             char *q = p;
             while (is_alnum(*p))
                 p++;
-            cur = new_token(TK_IDENT, cur, q, p-q);
+            cur = new_token(TK_IDENT, cur, q, q, p-q);
             continue;
         }
 
         if (isdigit(*p)) {
-            cur = new_token(TK_NUM, cur, p, 0);
+            cur = new_token(TK_NUM, cur, p, p, 0);
             cur->val = strtol(p, &p, 10);
             cur->len = num_of_digits(cur->val);
             continue;
@@ -413,7 +415,7 @@ void tokenize(char *filename, char *input) {
         error_at(p, "unable tokenize\n");
     }
 
-    new_token(TK_EOF, cur, p, 1);
+    new_token(TK_EOF, cur, p, p, 1);
     add_line_numbers(head.next);
     token = head.next;
 }
