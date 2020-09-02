@@ -651,7 +651,7 @@ Node *stmt() {
         return node;
     }
 
-    if (consume("{")) {
+    if (tok = consume("{")) {
         Node head;
         head.next = NULL;
         Node *cur = &head;
@@ -660,6 +660,7 @@ Node *stmt() {
 
         node = calloc(1, sizeof(Node));
         node->kind = ND_BLOCK;
+        node->tok = tok;
         while (!consume("}")) {
             cur->next = stmt();
             check_type(cur->next);
@@ -843,6 +844,7 @@ Node *typedefs() {
 
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_BLOCK;
+    node->tok = token;
 
     return node;
 }
@@ -1264,6 +1266,7 @@ Node *expr_stmt() {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_EXPR_STMT;
     node->lhs = expr();
+    node->tok = token;
     return node;
 }
 
