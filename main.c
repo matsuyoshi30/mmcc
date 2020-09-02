@@ -8,6 +8,8 @@ int main(int argc, char **argv) {
     char *filename = argv[1];
     char *user_input = read_file(filename);
 
+    printf(".file 1 \"%s\"\n", argv[1]);
+
     tokenize(filename, user_input); // tokenize input
     program();  // parse tokens into AST
     codegen();  // emit code from AST

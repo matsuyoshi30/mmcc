@@ -74,6 +74,8 @@ void typecast(Type *type) {
 }
 
 void gen_expr(Node *node) {
+    printf("  .loc 1 %d\n", node->tok->line_no);
+
     switch (node->kind) {
     case ND_NUM:
         printf("  push %ld\n", node->val);
@@ -270,6 +272,8 @@ void gen_expr(Node *node) {
 }
 
 void gen_stmt(Node *node) {
+    printf("  .loc 1 %d\n", node->tok->line_no);
+
     switch (node->kind) {
     case ND_RET:
         if (node->lhs) {
