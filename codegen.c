@@ -395,9 +395,7 @@ int align(int n, int align) {
     return n;
 }
 
-void codegen() {
-    printf(".intel_syntax noprefix\n");
-
+void emit_data() {
     printf(".data\n");
     for (Var *str=strs; str; str=str->next) {
         printf(".LC%d:\n", str->lc);
@@ -421,7 +419,9 @@ void codegen() {
                 printf("  .%dbyte %ld\n", init->size, init->val);
         }
     }
+}
 
+void emit_text() {
     printf(".text\n");
     for (Function *func=code; func; func=func->next) {
         funcname = func->name;
@@ -462,4 +462,10 @@ void codegen() {
         printf("  pop rbp\n");
         printf("  ret\n");
     }
+}
+
+void codegen() {
+    printf(".intel_syntax noprefix\n");
+    emit_data();
+    emit_text();
 }
