@@ -396,6 +396,15 @@ int align(int n, int align) {
 }
 
 void emit_data() {
+    printf(".bss\n");
+    for (Var *global=globals; global->next; global=global->next) {
+        if (global->initializer)
+            continue;
+
+        printf("%s:\n", global->name);
+        printf("  .zero %d\n", global->type->size);
+    }
+
     printf(".data\n");
     for (Var *str=strs; str; str=str->next) {
         printf(".LC%d:\n", str->lc);
@@ -404,11 +413,10 @@ void emit_data() {
         printf("  .byte 0\n");
     }
     for (Var *global=globals; global->next; global=global->next) {
-        printf("%s:\n", global->name);
-        if (!global->initializer) {
-            printf("  .zero %d\n", global->type->size);
+        if (!global->initializer)
             continue;
-        }
+
+        printf("%s:\n", global->name);
 
         for (Initializer *init=global->initializer; init; init=init->next) {
             if (init->label)
