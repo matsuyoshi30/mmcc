@@ -264,12 +264,12 @@ Var *new_lvar(Type *type, char *name) {
     return var;
 }
 
-Var *new_gvar(Type *type, char *name, bool is_extern) {
+Var *new_gvar(Type *type, char *name, bool is_extern, bool is_static) {
     Var *var = calloc(1, sizeof(Var));
     var->type = type;
     var->name = name;
     var->is_local = false;
-    var->is_static = true;
+    var->is_static = is_static;
     push_varscope(name)->var = var;
 
     if (!is_extern) {
@@ -549,7 +549,7 @@ void program() {
                     continue;
                 }
             } else {
-                Var *var = new_gvar(type, name, is_extern);
+                Var *var = new_gvar(type, name, is_extern, is_static);
                 if (consume("="))
                     var->initializer = gvar_initializer(type);
                 expect(";");

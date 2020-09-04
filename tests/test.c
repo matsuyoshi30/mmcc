@@ -71,6 +71,8 @@ char *initExt6 = "abc";
 int initExt7[3] = {0, 1, 2};
 char *initExt8[] = {"foo", "bar"};
 
+static int initExt9 = 3;
+
 int main() {
     assert(0, 0, "0");
     assert(42, 42, "42");
@@ -393,6 +395,8 @@ int main() {
     assert(8, ({ char *x[] = {"foo", "bar", "hoge"}; sizeof(x[0]); }), "{ char *x[] = {\"foo\", \"bar\", \"hoge\"}; sizeof(x[0]); }");
     assert(8, ({ char *x[] = {"foo", "bar", "hoge"}; sizeof(x[1]); }), "{ char *x[] = {\"foo\", \"bar\", \"hoge\"}; sizeof(x[1]); }");
     assert(8, ({ char *x[] = {"foo", "bar", "hoge"}; sizeof(x[2]); }), "{ char *x[] = {\"foo\", \"bar\", \"hoge\"}; sizeof(x[2]); }");
+
+    assert(3, initExt9, "initExt9");
 
     printf("OK\n");
     return 0;
