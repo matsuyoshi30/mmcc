@@ -164,8 +164,22 @@ void gen_expr(Node *node) {
 
         for (int i=num_of_args-1; i>=0; i--)
             printf("  pop %s\n", argRegs8[i]);
+
+        int seq = labels++;
+        printf("  mov rax, rsp\n");
+        printf("  and rax, 15\n"); // rax & 0b1111
+        printf("  jnz .Lcall.%d\n", seq);
         printf("  mov al, 0\n");
         printf("  call %s\n", node->funcname);
+        printf("  jmp .Lend.%d\n", seq);
+        // align
+        printf(".Lcall.%d:\n", seq);
+        printf("  sub rsp, 8\n");
+        printf("  mov al, 0\n");
+        printf("  call %s\n", node->funcname);
+        printf("  add rsp, 8\n");
+
+        printf(".Lend.%d:\n", seq);
         printf("  push rax\n");
         return;
     }
