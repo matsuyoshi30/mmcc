@@ -73,6 +73,12 @@ char *initExt8[] = {"foo", "bar"};
 
 static int initExt9 = 3;
 
+int counter() {
+  static int i;
+  static int j = 1+1;
+  return i++ + j++;
+}
+
 int main() {
     assert(0, 0, "0");
     assert(42, 42, "42");
@@ -397,6 +403,10 @@ int main() {
     assert(8, ({ char *x[] = {"foo", "bar", "hoge"}; sizeof(x[2]); }), "{ char *x[] = {\"foo\", \"bar\", \"hoge\"}; sizeof(x[2]); }");
 
     assert(3, initExt9, "initExt9");
+
+    assert(2, counter(), "counter()");
+    assert(4, counter(), "counter()");
+    assert(6, counter(), "counter()");
 
     printf("OK\n");
     return 0;

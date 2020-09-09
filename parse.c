@@ -148,9 +148,10 @@ Node *new_node_deref(Node *target, Token *tok) {
     return node;
 }
 
-Node *new_node_null_expr() {
+Node *new_node_null_expr(Token *tok) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_NULL_EXPR;
+    node->tok = tok;
     return node;
 }
 
@@ -967,6 +968,7 @@ Node *declaration() {
     Node *cur = &head;
 
     Token *tok = token;
+    bool is_static = consume("static");
     Type *base = basetype();
 
     int num = 0;
@@ -976,6 +978,17 @@ Node *declaration() {
             expect(",");
 
         Type *type = declarator(base);
+
+        if (is_static) {
+            Var *var = new_gvar(type, type->name, false, is_static);
+            if (consume("="))
+                var->initializer = gvar_initializer(type);
+            else if (type->is_incomplete)
+                error_tok(tok, "incomplete type");
+            expect(";");
+
+            return new_node_null_expr(tok);
+        }
 
         Var *var = new_lvar(type, type->name);
         var->offset = locals->offset + type->size;
@@ -1007,7 +1020,7 @@ Node *declaration() {
 //             | "struct" | "void" | typedef_name | "enum"
 bool is_typename() {
     if (peek("int") || peek("char") || peek("short") || peek("long") || peek("_Bool")
-        || peek("struct") || peek("void") || find_type(token) || peek("enum"))
+        || peek("struct") || peek("void") || find_type(token) || peek("enum") || peek("static"))
         return true;
 
     return false;
