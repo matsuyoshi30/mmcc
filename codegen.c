@@ -18,8 +18,6 @@ void gen_lval(Node *node) {
     if (node->kind == ND_LV) {
         if (node->var->is_local)
             printf("  lea rax, [rbp-%d] # %s\n", node->var->offset, node->var->name);
-        else if (node->var->str)
-            printf("  lea rax, .LC%d\n", node->var->lc);
         else
             printf("  lea rax, %s[rip]\n", node->var->name);
         printf("  push rax\n");
@@ -425,12 +423,6 @@ void emit_data() {
     }
 
     printf(".data\n");
-    for (Var *str=strs; str; str=str->next) {
-        printf(".LC%d:\n", str->lc);
-        for (int i=0; i<strlen(str->str); i++)
-            printf("  .byte %d # %c\n", str->str[i], str->str[i]==10 ? 0 : str->str[i]);
-        printf("  .byte 0\n");
-    }
     for (Var *global=globals; global->next; global=global->next) {
         if (!global->initializer)
             continue;
@@ -441,7 +433,7 @@ void emit_data() {
             if (init->label)
                 printf("  .quad %s\n", init->label); // another variable's address
             else if (init->size == 1)
-                printf("  .byte %ld\n", init->val);
+                printf("  .byte %ld # %c\n", init->val, (char)(init->val==10 ? 0 : init->val));
             else
                 printf("  .%dbyte %ld\n", init->size, init->val);
         }

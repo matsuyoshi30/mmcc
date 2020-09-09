@@ -103,10 +103,6 @@ struct Var {
     // global variable
     Initializer *initializer;
 
-    // string literal
-    char *str;
-    int lc;
-
     // enum
     int enum_val;
 };
@@ -238,7 +234,6 @@ struct Function {
 
 extern Var *locals;
 extern Var *globals;
-extern Var *strs;
 extern Tag *tags;
 extern Function *code;
 

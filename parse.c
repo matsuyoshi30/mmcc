@@ -299,23 +299,11 @@ Type *find_type(Token *tok) {
     return NULL;
 }
 
-Var *strs;
-static int lc = 0;
-
-Var *new_str(Token *token) {
-    Var *string = calloc(1, sizeof(Var));
-    string->type = array_of(char_type, token->strlen);
-    string->str = strndup(token->str, token->len);
-    string->next = strs;
-    string->lc = lc++;
-
+char *new_label() {
+    static int cnt = 0;
     char *name;
-    snprintf(name, 16, ".LC%d", string->lc);
-    string->name = name;
-
-    strs = string;
-
-    return string;
+    snprintf(name, 16, ".LC%d", cnt++);
+    return name;
 }
 
 TagScope *tagscope;
@@ -460,6 +448,18 @@ Initializer *new_init_glabel(Initializer *cur, char *labelname) {
     return init;
 }
 
+Initializer *new_init_string(Token *tok) {
+    Initializer head;
+    head.next = NULL;
+    Initializer *cur = &head;
+
+    char *s = strndup(tok->str, tok->len);
+    for (int i=0; i<strlen(s); i++)
+        cur = new_init_gval(cur, 1, s[i]);
+    cur = new_init_gval(cur, 1, 0); // null-terminated
+    return head.next;
+}
+
 Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
     // array
     if (type->kind == TY_ARR) {
@@ -521,7 +521,6 @@ void program() {
     head.next = NULL;
     Function *cur = &head;
 
-    strs = NULL;
     globals = calloc(1, sizeof(Var));
     scope_depth = 0;
 
@@ -1636,8 +1635,12 @@ Node *primary() {
     }
 
     tok = consume_str();
-    if (tok)
-        return new_node_var(new_str(tok), tok);
+    if (tok) {
+        Var *var = new_gvar(array_of(char_type, tok->strlen), new_label(), false, false);
+        var->initializer = new_init_string(tok);
+
+        return new_node_var(var, tok);
+    }
 
     return new_node_num(expect_number(), token);
 }
