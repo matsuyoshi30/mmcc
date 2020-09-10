@@ -48,8 +48,8 @@
 - [x] local variable initializer
 - [x] global variable initializer
 - [x] string literal initializer
-- static local variable
-- static global variable
+- [x] static local variable
+- [x] static global variable
 - compound literal
 - preprocesser
 - variadic arguments
