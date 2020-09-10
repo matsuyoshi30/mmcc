@@ -2,13 +2,13 @@
 
 /// type
 
-Type *void_type = &(Type){TY_VOID};
-Type *char_type = &(Type){TY_CHAR, 1};
-Type *short_type = &(Type){TY_SHORT, 2};
-Type *int_type = &(Type){TY_INT, 4};
-Type *long_type = &(Type){TY_LONG, 8};
-Type *bool_type = &(Type){TY_BOOL, 1};
-Type *enum_type = &(Type){TY_ENUM, 4};
+Type *void_type = &(Type){TY_VOID, 1, 1};
+Type *char_type = &(Type){TY_CHAR, 1, 1};
+Type *short_type = &(Type){TY_SHORT, 2, 2};
+Type *int_type = &(Type){TY_INT, 4, 4};
+Type *long_type = &(Type){TY_LONG, 8, 8};
+Type *bool_type = &(Type){TY_BOOL, 1, 1};
+Type *enum_type = &(Type){TY_ENUM, 4, 4};
 
 bool is_integer(Type *type) {
     return type->kind == TY_INT || type->kind == TY_CHAR
@@ -20,6 +20,7 @@ Type *pointer_to(Type *ty) {
     Type *type = calloc(1, sizeof(Type));
     type->kind = TY_PTR;
     type->size = 8;
+    type->align = 8;
     type->ptr_to = ty;
     return type;
 }
@@ -28,6 +29,7 @@ Type *array_of(Type *ty, int n) {
     Type *type = calloc(1, sizeof(Type));
     type->kind = TY_ARR;
     type->size = ty->size * n;
+    type->align = ty->align;
     type->ptr_to = ty;
     type->size_array = n;
     return type;
@@ -1132,10 +1134,14 @@ Type *struct_decl() {
 
             int offset = 0;
             for (Member *m=type->members; m; m=m->next) {
+                offset = align(offset, m->type->align);
                 m->offset = offset;
                 offset += m->type->size;
+
+                if (type->align < m->type->align)
+                    type->align = m->type->align;
             }
-            type->size = offset;
+            type->size = align(offset, type->align);
 
             tsc = find_tag(tok);
             // redefinition
@@ -1181,10 +1187,14 @@ Type *struct_decl() {
     // calculate offset and struct size
     int offset = 0;
     for (Member *m=type->members; m; m=m->next) {
+        offset = align(offset, m->type->align);
         m->offset = offset;
         offset += m->type->size;
+
+        if (type->align < m->type->align)
+            type->align = m->type->align;
     }
-    type->size = offset;
+    type->size = align(offset, type->align);
 
     return type;
 }

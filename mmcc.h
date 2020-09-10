@@ -64,6 +64,7 @@ typedef struct Member Member;
 struct Type {
     Typekind kind;       // type kind
     int size;            // type size
+    int align;           // alignment
     struct Type *ptr_to; // pointer or array
     int size_array;      // array
     bool is_incomplete;  // incomplete type or not
@@ -241,6 +242,7 @@ void program();
 
 // Code generator
 
+int align(int n, int align);
 void codegen();
 
 // Other

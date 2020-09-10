@@ -400,6 +400,9 @@ void gen_stmt(Node *node) {
 }
 
 int align(int n, int align) {
+    if (n == 0)
+        return 0;
+
     if (n < align)
         return align;
     while (n%align)

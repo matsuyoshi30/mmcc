@@ -408,6 +408,9 @@ int main() {
     assert(4, counter(), "counter()");
     assert(6, counter(), "counter()");
 
+    assert(8, ({ struct {char a; int b;} x; sizeof(x); }), "{ struct {char a; int b;} x; sizeof(x); }");
+    assert(16, ({ struct {int a; long b;} x; sizeof(x); }), "{ struct {int a; long b;} x; sizeof(x); }");
+
     printf("OK\n");
     return 0;
 }
