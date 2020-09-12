@@ -443,6 +443,12 @@ Initializer *new_init_zero(Initializer *cur, int size) {
     return cur;
 }
 
+Initializer *emit_struct_padding(Initializer *cur, Type *type, Member *member) {
+    int start = member->offset + member->type->size;
+    int end = member->next ? member->next->offset : type->size;
+    return new_init_zero(cur, end - start);
+}
+
 Initializer *new_init_glabel(Initializer *cur, char *labelname) {
     Initializer *init = calloc(1, sizeof(Initializer));
     init->label = labelname;
@@ -490,6 +496,31 @@ Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
             type->size_array = elem_cnt;
             type->is_incomplete = false;
         }
+
+        return cur;
+    }
+
+    // struct
+    if (type->kind == TY_STRUCT) {
+        expect("{");
+        Member *mem = type->members;
+
+        if (!peek("}")) {
+            do {
+                cur = gvar_initializer_helper(cur, mem->type);
+                cur = emit_struct_padding(cur, type, mem);
+                mem = mem->next;
+            } while (mem && !peek_end() && consume(","));
+        }
+
+        if (consume(","))
+            expect("}");
+        else
+            expect("}");
+
+        // set excess struct members to zero
+        if (mem)
+            cur = new_init_zero(cur, type->size - mem->offset);
 
         return cur;
     }

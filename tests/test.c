@@ -73,6 +73,10 @@ char *initExt8[] = {"foo", "bar"};
 
 static int initExt9 = 3;
 
+int initExt10[3] = {0, 1, 2};
+char *initExt11[] = {"foo", "bar"};
+struct {char a; int b;} initExt12[2] = {{1, 2}, {3, 4}};
+
 int counter() {
   static int i;
   static int j = 1+1;
@@ -421,6 +425,20 @@ int main() {
     assert(8, ({ char *x[] = {"foo", "bar", "hoge"}; sizeof(x[2]); }), "{ char *x[] = {\"foo\", \"bar\", \"hoge\"}; sizeof(x[2]); }");
 
     assert(3, initExt9, "initExt9");
+
+    assert(0, initExt10[0], "initExt10[0]");
+    assert(1, initExt10[1], "initExt10[1]");
+    assert(2, initExt10[2], "initExt10[2]");
+
+    assert(0, strcmp(initExt11[0], "foo"), "strcmp(initExt11[0], \"foo\")");
+    assert(0, strcmp(initExt11[1], "bar"), "strcmp(initExt11[1], \"bar\")");
+    assert(0, initExt11[1][3], "initExt11[1][3]");
+    assert(2, sizeof(initExt11) / sizeof(*initExt11), "sizeof(initExt11) / sizeof(*initExt11)");
+
+    assert(1, initExt12[0].a, "initExt12[0].a");
+    assert(2, initExt12[0].b, "initExt12[0].b");
+    assert(3, initExt12[1].a, "initExt12[1].a");
+    assert(4, initExt12[1].b, "initExt12[1].b");
 
     assert(2, counter(), "counter()");
     assert(4, counter(), "counter()");
