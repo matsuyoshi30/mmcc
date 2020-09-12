@@ -411,6 +411,9 @@ int main() {
     assert(8, ({ struct {char a; int b;} x; sizeof(x); }), "{ struct {char a; int b;} x; sizeof(x); }");
     assert(16, ({ struct {int a; long b;} x; sizeof(x); }), "{ struct {int a; long b;} x; sizeof(x); }");
 
+    assert(1, (int){1}, "(int){1}");
+    assert(2, ((int[]){0,1,2})[2], "(int[]){0,1,2}[2]");
+
     printf("OK\n");
     return 0;
 }

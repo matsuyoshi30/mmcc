@@ -418,6 +418,7 @@ Node *mul();
 Node *cast();
 Node *unary();
 Node *postfix();
+Node *compound_literal();
 Node *struct_ref();
 Member *get_struct_member();
 Node *primary();
@@ -493,7 +494,10 @@ Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
         return cur;
     }
 
+    bool open_brace = consume("{");
     Node *expr = conditional();
+    if (open_brace)
+        expect("}");
 
     // another variable's address
     if (expr->kind == ND_ADDR) {
@@ -947,7 +951,10 @@ Node *lvar_initializer_helper(Node *cur, Var *var, Type *type, Designator *desg)
         return cur;
     }
 
+    bool open_brace = consume("{");
     cur->next = new_designator(var, desg, assign());
+    if (open_brace)
+        expect("}");
     return cur->next;
 }
 
@@ -1461,9 +1468,11 @@ Node *cast() {
             Type *type = basetype();
             node->type = abstract_declarator(type);
             expect(")");
-            node->lhs = cast();
-            check_type(node->lhs);
-            return node;
+            if (!consume("{")) {
+                node->lhs = cast();
+                check_type(node->lhs);
+                return node;
+            }
         }
         token = tok; // bring back the token sequense
     }
@@ -1533,10 +1542,14 @@ Node *postop(Node *node, int val, Token *tok) {
     return new_node(ND_COMMA, e1, new_node(ND_COMMA, e2, e3, tok), tok);
 }
 
-// postfix = primary ( ( "[" expr "]" ) | ( "." ident ) | ( "->" ident ) | "++" | "--" )*
+// postfix = compound_literal
+//         | primary ( ( "[" expr "]" ) | ( "." ident ) | ( "->" ident ) | "++" | "--" )*
 Node *postfix() {
-    Node *node = primary();
+    Node *node = compound_literal();
+    if (node)
+        return node;
 
+    node = primary();
     Token *tok;
     while (1) {
         if (tok = consume("[")) {
@@ -1574,6 +1587,33 @@ Node *postfix() {
 
         return node;
     }
+}
+
+// compound_literal = '(' typename ')' '{' ( gvar_initializer | lvar_initializer ) '}'
+Node *compound_literal() {
+    Token *tok = token;
+    if (!consume("(") || !is_typename()) {
+        token = tok;
+        return NULL;
+    }
+
+    Type *type = basetype();
+    type = abstract_declarator(type);
+
+    expect(")");
+    if (!peek("{")) {
+        token = tok;
+        return NULL;
+    }
+
+    if (scope_depth == 0) {
+        Var *var = new_gvar(type, new_label(), false, true);
+        var->initializer = gvar_initializer(type);
+        return new_node_var(var, tok);
+    }
+
+    Var *var = new_lvar(type, new_label());
+    return lvar_initializer(var, tok);
 }
 
 Node *struct_ref(Node *node, char *ident) {
