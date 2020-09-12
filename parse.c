@@ -873,6 +873,7 @@ Node *new_designator_helper(Var *var, Designator *desg, Token *tok) {
     if (desg->mem) {
         Node *n = calloc(1, sizeof(Node));
         n->kind = ND_MEMBER;
+        n->tok = desg->mem->tok;
         n->lhs = node;
         n->member = desg->mem;
         return n;
@@ -1251,12 +1252,14 @@ Member *struct_members() {
     while (!consume("}")) {
         int num = 0;
         Type *base = basetype();
+        Token *tok = token;
         while (!consume(";")) {
             if (num > 0)
                 expect(",");
 
             Member *member = calloc(1, sizeof(Member));
             member->type = declarator(base);
+            member->tok = tok;
             member->name = member->type->name;
             cur->next = member;
 

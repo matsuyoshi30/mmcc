@@ -175,6 +175,7 @@ struct TagScope {
 struct Member {
     Member *next; // next member
     Type *type;   // member type
+    Token *tok;   // representative token
     char *name;   // member name
     int offset;   // member offset
 };
