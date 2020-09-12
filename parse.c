@@ -303,9 +303,9 @@ Type *find_type(Token *tok) {
 
 char *new_label() {
     static int cnt = 0;
-    char *name;
+    char name[16];
     snprintf(name, 16, ".LC%d", cnt++);
-    return name;
+    return strndup(name, 16);
 }
 
 TagScope *tagscope;
