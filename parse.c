@@ -860,7 +860,8 @@ Node *typedefs() {
 typedef struct Designator Designator;
 struct Designator {
     Designator *next;
-    int idx;
+    int idx;     // array
+    Member *mem; // struct
 };
 
 Node *new_designator_helper(Var *var, Designator *desg, Token *tok) {
@@ -868,6 +869,15 @@ Node *new_designator_helper(Var *var, Designator *desg, Token *tok) {
         return new_node_var(var, tok);
 
     Node *node = new_designator_helper(var, desg->next, tok);
+
+    if (desg->mem) {
+        Node *n = calloc(1, sizeof(Node));
+        n->kind = ND_MEMBER;
+        n->lhs = node;
+        n->member = desg->mem;
+        return n;
+    }
+
     node = new_add(node, new_node_num(desg->idx, tok), tok);
     return new_node_deref(node, tok);
 }
@@ -946,6 +956,32 @@ Node *lvar_initializer_helper(Node *cur, Var *var, Type *type, Designator *desg)
             type->size = type->ptr_to->size * i;
             type->size_array = i;
             type->is_incomplete = false;
+        }
+
+        return cur;
+    }
+
+    if (type->kind == TY_STRUCT) {
+        expect("{");
+        Member *mem = type->members;
+
+        if (!peek("}")) {
+            do {
+                Designator desg2 = {desg, 0, mem};
+                cur = lvar_initializer_helper(cur, var, mem->type, &desg2);
+                mem = mem->next;
+            } while (mem && !peek_end() && consume(","));
+        }
+
+        if (consume(","))
+            expect("}");
+        else
+            expect("}");
+
+        // set excess struct elements to zero
+        for (; mem; mem=mem->next) {
+            Designator desg2 = {desg, 0, mem};
+            cur = lvar_init_zero(cur, var, mem->type, &desg2);
         }
 
         return cur;
