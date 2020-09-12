@@ -7,6 +7,8 @@ mkdir -p $TMP
 
 mmcc() {
 	  file=$1
+    cat <<EOF > $TMP/$1
+EOF
 
 	  grep -v '^#' mmcc.h >> $TMP/$1
 	  grep -v '^#' $1 >> $TMP/$1
