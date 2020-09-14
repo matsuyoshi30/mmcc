@@ -1439,26 +1439,30 @@ Node *conditional() {
     return node;
 }
 
-// logicOr = logicAnd ( "||" logicAnd )?
+// logicOr = logicAnd ( "||" logicAnd )*
 Node *logicOr() {
     Node *node = logicAnd();
 
     Token *tok;
-    if (tok = consume("||"))
-        node = new_node(ND_LOGOR, node, logicAnd(), tok);
-
-    return node;
+    for (;;) {
+        if (tok = consume("||"))
+            node = new_node(ND_LOGOR, node, logicAnd(), tok);
+        else
+            return node;
+    }
 }
 
-// logicAnd = equality ( "&&" equality )?
+// logicAnd = equality ( "&&" equality )*
 Node *logicAnd() {
     Node *node = equality();
 
     Token *tok;
-    if (tok = consume("&&"))
-        node = new_node(ND_LOGAND, node, equality(), tok);
-
-    return node;
+    for (;;) {
+        if (tok = consume("&&"))
+            node = new_node(ND_LOGAND, node, equality(), tok);
+        else
+            return node;
+    }
 }
 
 // equality = relational ( "==" relational | "!=" relational )*
