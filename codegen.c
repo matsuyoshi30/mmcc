@@ -435,7 +435,7 @@ int align(int n, int align) {
 
 void emit_data() {
     for (Var *global=globals; global->next; global=global->next) {
-        if (global->is_static)
+        if (!global->is_static)
             printf(".global %s\n", global->name);
     }
 

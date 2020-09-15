@@ -1782,7 +1782,7 @@ Node *primary() {
 
     tok = consume_str();
     if (tok) {
-        Var *var = new_gvar(array_of(char_type, tok->strlen), new_label(), false, false);
+        Var *var = new_gvar(array_of(char_type, tok->strlen), new_label(), false, true);
         var->initializer = new_init_string(tok);
 
         return new_node_var(var, tok);
