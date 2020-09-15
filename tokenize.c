@@ -177,7 +177,7 @@ bool is_alnum(char c) {
 }
 
 char *is_reserved(char *c) {
-    char *kw[] = {"return", "if", "else", "while", "for",
+    char *kw[] = {"return", "if", "else", "while", "for", "do",
                   "switch", "case", "default", "break", "continue", "goto",
                   "sizeof", "typedef", "static", "extern"};
     for (int i=0; i<sizeof(kw)/sizeof(*kw); i++) {

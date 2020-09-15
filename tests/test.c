@@ -450,6 +450,9 @@ int main() {
     assert(1, (int){1}, "(int){1}");
     assert(2, ((int[]){0,1,2})[2], "(int[]){0,1,2}[2]");
 
+    assert(7, ({ int i=0; int j=0; do { j++; } while (i++ < 6); j; }), "{ int i=0; int j=0; do { j++; } while (i++ < 6); j; }");
+    assert(4, ({ int i=0; int j=0; int k=0; do { if (++j > 3) break; continue; k++; } while (1); j; }), "{ int i=0; int j=0; int k=0; do { if (j++ > 3) break; continue; k++; } while (1); j; }");
+
     printf("OK\n");
     return 0;
 }

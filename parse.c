@@ -663,6 +663,7 @@ Var *funcparams() {
 //        | "{" stmt* "}"
 //        | "if" "(" expr ")" stmt ( "else" stmt )?
 //        | "while" "(" expr ")" stmt
+//        | "do" stmt "while" "(" expr ")" ";"
 //        | "for" "(" expr_stmt? ";" expr? ";" expr_stmt? ")" stmt
 //        | "switch" "(" expr ")" stmt
 //        | "case" const_expr ":" stmt
@@ -736,6 +737,21 @@ Node *stmt() {
         expect(")");
         node->then = stmt();
         check_type(node->then);
+        return node;
+    }
+
+    if (tok = consume("do")) {
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_DO;
+        node->tok = tok;
+        node->then = stmt();
+        check_type(node->then);
+        expect("while");
+        expect("(");
+        node->cond = expr();
+        check_type(node->cond);
+        expect(")");
+        expect(";");
         return node;
     }
 

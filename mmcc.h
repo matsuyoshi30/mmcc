@@ -129,6 +129,7 @@ typedef enum {
     ND_LOGAND,    // &&
     ND_IF,        // "if"
     ND_FOR,       // "for"
+    ND_DO,        // "do"
     ND_BREAK,     // "break"
     ND_CONT,      // "continue"
     ND_GOTO,      // "goto"
