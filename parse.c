@@ -984,6 +984,12 @@ Node *lvar_initializer_helper(Node *cur, Var *var, Type *type, Designator *desg)
         else
             expect("}");
 
+        // padding extra array elements with zero value
+        if (i < type->size_array) {
+            Designator desg2 = {desg, i++};
+            cur = lvar_init_zero(cur, var, type->ptr_to, &desg2);
+        }
+
         if (type->is_incomplete) {
             type->size = type->ptr_to->size * i;
             type->size_array = i;
