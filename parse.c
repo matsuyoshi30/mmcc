@@ -199,7 +199,7 @@ Node *new_add(Node *lhs, Node *rhs, Token *tok) {
         return new_node(ND_ADD, lhs, rhs, tok);
     // ptr + ptr
     if (lhs->type->ptr_to && rhs->type->ptr_to)
-        error_tok(token, "invalid operands");
+        error_tok(tok, "invalid operands");
     // num + ptr -> ptr + num
     if (rhs->type->ptr_to) {
         Node *temp = lhs;
@@ -1091,15 +1091,10 @@ Node *declaration() {
         Var *var = new_lvar(type, type->name);
         var->offset = locals->offset + type->size;
 
-        Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_LV;
-        node->tok = tok;
-        node->var = var;
-
         if (consume("=")) {
             cur->next = lvar_initializer(var, tok);
         } else {
-            cur->next = node;
+            cur->next = new_node_var(var, tok);
         }
 
         num++;
@@ -1632,7 +1627,8 @@ Node *postop(Node *node, int val, Token *tok) {
     Node *e1 = new_node(ND_AS, new_node_var(tmp, tok), new_node_addr(node, tok), tok);
     Node *e2 = new_node(ND_AS,
                         new_node_deref(new_node_var(tmp, tok), tok),
-                        new_node(ND_ADD, new_node_deref(new_node_var(tmp, tok), tok), new_node_num(val, tok), tok), tok);
+                        new_add(new_node_deref(new_node_var(tmp, tok), tok), new_node_num(val, tok), tok),
+                        tok);
     Node *e3 = new_add(new_node_deref(new_node_var(tmp, tok), tok), new_node_num(val*-1, tok), tok);
 
     return new_node(ND_COMMA, e1, new_node(ND_COMMA, e2, e3, tok), tok);
@@ -1647,7 +1643,7 @@ Node *postfix() {
 
     node = primary();
     Token *tok;
-    while (1) {
+    for (;;) {
         if (tok = consume("[")) {
             Node *idx = expr();
             expect("]");
