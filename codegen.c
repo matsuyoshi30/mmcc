@@ -187,6 +187,9 @@ void gen_expr(Node *node) {
         printf("  add rsp, 8\n");
 
         printf(".Lend.%d:\n", seq);
+        if (node->type->kind == TY_BOOL) {
+            printf("  movzb rax, al\n");
+        }
         printf("  push rax\n");
         return;
     }

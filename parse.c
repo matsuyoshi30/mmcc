@@ -35,6 +35,15 @@ Type *array_of(Type *ty, int n) {
     return type;
 }
 
+Type *func_type(Type *return_type) {
+    Type *type = calloc(1, sizeof(Type));
+    type->kind = TY_FUNC;
+    type->size = 1;
+    type->align = 1;
+    type->return_type = return_type;
+    return type;
+}
+
 void check_type(Node *node) {
     if (!node || node->type)
         return;
@@ -90,7 +99,6 @@ void check_type(Node *node) {
     case ND_MEMBER:
         node->type = node->member->type;
         return;
-    case ND_FUNC:
     case ND_NUM:
         node->type = int_type;
         return;
@@ -603,12 +611,17 @@ void program() {
 
 // function = "(" funcparams* ")" "{" stmt* "}"
 Function *function(Type *type, char *funcname, bool is_extern) {
+    // add a function type to the scope
+    new_gvar(func_type(type), funcname, true, true);
+
     Function *func = calloc(1, sizeof(Function));
 
+    enter_scope();
     expect("(");
 
     locals = funcparams();
     if (consume(";")) {
+        leave_scope();
         return NULL;
     }
 
@@ -632,6 +645,7 @@ Function *function(Type *type, char *funcname, bool is_extern) {
 
     func->locals = locals;
     func->body = head.next;
+    leave_scope();
 
     return func;
 }
@@ -1770,7 +1784,18 @@ Node *primary() {
     tok = consume_ident();
     if (tok) {
         if (consume("(")) {
-            return new_node_func(strndup(tok->str, tok->len), funcargs(), tok);
+            Node *node = new_node_func(strndup(tok->str, tok->len), funcargs(), tok);
+            check_type(node);
+
+            Var *var;
+            if (var = find_var(tok)) {
+                if (var->type->kind != TY_FUNC)
+                    error_tok(tok, "not a function");
+                node->type = var->type->return_type;
+            } else {
+                node->type = int_type;
+            }
+            return node;
         } else {
             Var *var;
             if (var = find_var(tok)) {
