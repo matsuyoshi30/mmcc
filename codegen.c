@@ -16,6 +16,9 @@ void gen_stmt(Node *node);
 
 void gen_lval(Node *node) {
     if (node->kind == ND_LV) {
+        if (node->init)
+            gen_stmt(node->init);
+
         if (node->var->is_local)
             printf("  lea rax, [rbp-%d] # %s\n", node->var->offset, node->var->name);
         else
@@ -79,6 +82,12 @@ void gen_expr(Node *node) {
         printf("  push %ld\n", node->val);
         return;
     case ND_LV:
+        if (node->init)
+            gen_stmt(node->init);
+        gen_lval(node);
+        if (node->type->kind != TY_ARR)
+            load(node->type);
+        return;
     case ND_MEMBER:
         gen_lval(node);
         if (node->type->kind != TY_ARR)

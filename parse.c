@@ -47,6 +47,8 @@ void check_type(Node *node) {
     check_type(node->preop);
     check_type(node->postop);
 
+    check_type(node->init);
+
     for (Node *n=node->blocks; n; n=n->next)
         check_type(n);
     for (Node *n=node->args; n; n=n->next)
@@ -103,6 +105,7 @@ Node *new_node(Nodekind kind, Node *lhs, Node *rhs, Token *tok) {
     node->lhs = lhs;
     node->rhs = rhs;
     node->tok = tok;
+    check_type(node);
     return node;
 }
 
@@ -179,6 +182,7 @@ Node *new_node_var(Var *var, Token *tok) {
     node->kind = ND_LV;
     node->tok = tok;
     node->var = var;
+    check_type(node);
     return node;
 }
 
@@ -1705,7 +1709,9 @@ Node *compound_literal() {
     }
 
     Var *var = new_lvar(type, new_label());
-    return lvar_initializer(var, tok);
+    Node *node = new_node_var(var, tok);
+    node->init = lvar_initializer(var, tok);
+    return node;
 }
 
 Node *struct_ref(Node *node, char *ident) {
