@@ -56,6 +56,7 @@ typedef enum {
     TY_ARR,
     TY_STRUCT,
     TY_ENUM,
+    TY_FUNC,
 } Typekind;
 
 typedef struct Type Type;
@@ -74,6 +75,9 @@ struct Type {
 
     // access struct members
     Member *members;
+
+    // function
+    Type *return_type;
 };
 
 // Parser
@@ -197,6 +201,7 @@ struct Node {
 
     // variable
     Var *var;
+    Node *init;    // compound literal
 
     // "if", "for" or "while" statement
     Node *cond;
