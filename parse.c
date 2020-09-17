@@ -1669,19 +1669,15 @@ Node *postfix() {
             continue;
         }
 
-        if (consume(".")) {
+        if (tok = consume(".")) {
             // access struct member
-            tok = consume_ident();
-            char *ident = strndup(tok->str, tok->len);
-            node = struct_ref(node, ident);
+            node = struct_ref(node);
             continue;
         }
 
-        if (consume("->")) {
+        if (tok = consume("->")) {
             // b->n => (*b).n
-            tok = consume_ident();
-            char *ident = strndup(tok->str, tok->len);
-            node = struct_ref(new_node_deref(node, tok), ident);
+            node = struct_ref(new_node_deref(node, tok));
             continue;
         }
 
@@ -1728,7 +1724,7 @@ Node *compound_literal() {
     return node;
 }
 
-Node *struct_ref(Node *node, char *ident) {
+Node *struct_ref(Node *node) {
     check_type(node);
     if (node->type->kind != TY_STRUCT)
         error_tok(node->tok, "not struct");
@@ -1737,7 +1733,9 @@ Node *struct_ref(Node *node, char *ident) {
     n->kind = ND_MEMBER;
     n->tok = node->tok;
     n->lhs = node;
-    n->member = get_struct_member(node->type, ident);
+
+    Token *tok = consume_ident();
+    n->member = get_struct_member(node->type, strndup(tok->str, tok->len));
 
     return n;
 }
