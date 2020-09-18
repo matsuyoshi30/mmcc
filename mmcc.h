@@ -7,6 +7,9 @@
 #include <stdarg.h>
 #include <string.h>
 
+typedef struct Node Node;
+typedef struct Member Member;
+
 // Tokenizer
 
 typedef enum {
@@ -60,8 +63,6 @@ typedef enum {
 } Typekind;
 
 typedef struct Type Type;
-typedef struct Member Member;
-
 struct Type {
     Typekind kind;       // type kind
     int size;            // type size
@@ -79,6 +80,20 @@ struct Type {
     // function
     Type *return_type;
 };
+
+extern Type *void_type;
+extern Type *char_type;
+extern Type *short_type;
+extern Type *int_type;
+extern Type *long_type;
+extern Type *bool_type;
+extern Type *enum_type;
+
+bool is_integer(Type *type);
+Type *pointer_to(Type *ty);
+Type *array_of(Type *ty, int n);
+Type *func_type(Type *return_type);
+void check_type(Node *node);
 
 // Parser
 
@@ -185,7 +200,6 @@ struct Member {
     int offset;   // member offset
 };
 
-typedef struct Node Node;
 struct Node {
     Nodekind kind; // node kind
     Type *type;    // node type

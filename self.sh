@@ -13,6 +13,8 @@ EOF
 	  grep -v '^#' mmcc.h >> $TMP/$1
 	  grep -v '^#' $1 >> $TMP/$1
     sed -i 's/\bbool\b/_Bool/g' $TMP/$1
+    sed -i 's/\btrue\b/1/g; s/\bfalse\b/0/g;' $TMP/$1
+    sed -i 's/\bNULL\b/0/g' $TMP/$1
     sed -i 's/, \.\.\.//g' $TMP/$1
 
 	  ./mmcc $TMP/$1 > $TMP/${1%.c}.s
@@ -25,6 +27,7 @@ cc() {
 
 mmcc main.c
 cc tokenize.c
+mmcc type.c
 cc parse.c
 mmcc codegen.c
 
