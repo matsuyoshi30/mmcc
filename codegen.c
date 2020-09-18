@@ -450,14 +450,14 @@ int align(int n, int align) {
     return n;
 }
 
-void emit_data() {
-    for (Var *global=globals; global->next; global=global->next) {
+void emit_data(Program *prog) {
+    for (Var *global=prog->globals; global->next; global=global->next) {
         if (!global->is_static)
             printf(".global %s\n", global->name);
     }
 
     printf(".bss\n");
-    for (Var *global=globals; global->next; global=global->next) {
+    for (Var *global=prog->globals; global->next; global=global->next) {
         if (global->initializer)
             continue;
 
@@ -466,7 +466,7 @@ void emit_data() {
     }
 
     printf(".data\n");
-    for (Var *global=globals; global->next; global=global->next) {
+    for (Var *global=prog->globals; global->next; global=global->next) {
         if (!global->initializer)
             continue;
 
@@ -483,9 +483,9 @@ void emit_data() {
     }
 }
 
-void emit_text() {
+void emit_text(Program *prog) {
     printf(".text\n");
-    for (Function *func=code; func; func=func->next) {
+    for (Function *func=prog->code; func; func=func->next) {
         funcname = func->name;
         if (!func->is_static)
             printf(".global %s\n", func->name);
@@ -527,8 +527,8 @@ void emit_text() {
     }
 }
 
-void codegen() {
+void codegen(Program *prog) {
     printf(".intel_syntax noprefix\n");
-    emit_data();
-    emit_text();
+    emit_data(prog);
+    emit_text(prog);
 }

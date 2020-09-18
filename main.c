@@ -11,8 +11,8 @@ int main(int argc, char **argv) {
     printf(".file 1 \"%s\"\n", argv[1]);
 
     tokenize(filename, user_input); // tokenize input
-    program();  // parse tokens into AST
-    codegen();  // emit code from AST
+    Program *prog = program();  // parse tokens into AST
+    codegen(prog);  // emit code from AST
 
     return 0;
 }

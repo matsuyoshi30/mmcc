@@ -133,9 +133,9 @@ Node *new_sub(Node *lhs, Node *rhs, Token *tok) {
     return new_node(ND_SUB, lhs, rhs, tok);
 }
 
-int scope_depth;
+static int scope_depth;
 
-VarScope *varscope;
+static VarScope *varscope;
 
 VarScope *push_varscope(char *name) {
     VarScope *v = calloc(1, sizeof(VarScope));
@@ -147,8 +147,8 @@ VarScope *push_varscope(char *name) {
     return v;
 }
 
-Var *locals;
-Var *globals;
+static Var *locals;
+static Var *globals;
 
 Var *new_params(Type *type, char *name) {
     Var *var = calloc(1, sizeof(Var));
@@ -213,7 +213,7 @@ char *new_label() {
     return strndup(name, 16);
 }
 
-TagScope *tagscope;
+static TagScope *tagscope;
 
 void push_tagscope(Tag *tag) {
     TagScope *t = calloc(1, sizeof(TagScope));
@@ -223,7 +223,7 @@ void push_tagscope(Tag *tag) {
     tagscope = t;
 }
 
-Tag *tags;
+static Tag *tags;
 
 TagScope *find_tag(Token *tok) {
     for (TagScope *ts=tagscope; ts; ts=ts->next) {
@@ -234,7 +234,7 @@ TagScope *find_tag(Token *tok) {
     return NULL;
 }
 
-Node *current_switch;
+static Node *current_switch;
 
 void enter_scope() {
     scope_depth++;
@@ -295,9 +295,9 @@ long eval(Node *node) {
 
 int const_expr();
 
-Function *code;
+static Function *code;
 
-void program();
+Program *program();
 Function *function(Type *type, char *funcname, bool is_extern);
 Var *funcparams();
 Node *stmt();
@@ -458,7 +458,7 @@ Initializer *gvar_initializer(Type *type) {
 }
 
 // program = ( basetype ident ( function | gvar ";" ) )* | typedefs
-void program() {
+Program *program() {
     Function head;
     head.next = NULL;
     Function *cur = &head;
@@ -499,7 +499,10 @@ void program() {
         }
     }
 
-    code = head.next;
+    Program *prog = calloc(1, sizeof(Program));
+    prog->globals = globals;
+    prog->code = head.next;
+    return prog;
 }
 
 // function = "(" funcparams* ")" "{" stmt* "}"

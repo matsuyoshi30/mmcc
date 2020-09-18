@@ -254,17 +254,17 @@ struct Function {
     Node *body;
 };
 
-extern Var *locals;
-extern Var *globals;
-extern Tag *tags;
-extern Function *code;
+typedef struct {
+    Var *globals;
+    Function *code;
+} Program;
 
-void program();
+Program *program();
 
 // Code generator
 
 int align(int n, int align);
-void codegen();
+void codegen(Program *prog);
 
 // Other
 
