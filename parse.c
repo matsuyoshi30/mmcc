@@ -779,6 +779,7 @@ Node *stmt() {
         node->tok = tok;
         expect("(");
 
+        enter_scope();
         if (consume(";")) {
             node->preop = NULL;
         } else {
@@ -808,6 +809,7 @@ Node *stmt() {
         }
 
         node->then = stmt();
+        leave_scope();
         check_type(node->then);
         return node;
     }
