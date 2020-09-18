@@ -374,10 +374,28 @@ Initializer *new_init_string(Token *tok) {
     return head.next;
 }
 
+void skip_excess_elements_helper() {
+    for (;;) {
+        if (consume("{"))
+            skip_excess_elements_helper();
+        else
+            assign();
+
+        if (consume("}") || (consume(",") && consume("}")))
+            return;
+        expect(",");
+    }
+}
+
+void skip_excess_elements() {
+    expect(",");
+    skip_excess_elements_helper();
+}
+
 Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
     // array
     if (type->kind == TY_ARR) {
-        expect("{");
+        bool open = consume("{");
         int elem_cnt = 0;
 
         if (!peek("}")) {
@@ -387,14 +405,11 @@ Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
             } while (!peek_end() && consume(","));
         }
 
-        if (consume(","))
-            expect("}");
-        else
-            expect("}");
+        if (open && !(consume("}") || (consume(",") && consume("}"))))
+            skip_excess_elements();
 
         // padding extra array elements with zero value
-        if (!type->size_array && elem_cnt < type->size_array)
-            cur = new_init_zero(cur, type->ptr_to->size * (type->size_array - elem_cnt));
+        cur = new_init_zero(cur, type->ptr_to->size * (type->size_array - elem_cnt));
 
         if (type->is_incomplete) {
             type->size = type->ptr_to->size * elem_cnt;
@@ -407,7 +422,7 @@ Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
 
     // struct
     if (type->kind == TY_STRUCT) {
-        expect("{");
+        bool open = consume("{");
         Member *mem = type->members;
 
         if (!peek("}")) {
@@ -418,10 +433,8 @@ Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
             } while (mem && !peek_end() && consume(","));
         }
 
-        if (consume(","))
-            expect("}");
-        else
-            expect("}");
+        if (open && !(consume("}") || (consume(",") && consume("}"))))
+            skip_excess_elements();
 
         // set excess struct members to zero
         if (mem)

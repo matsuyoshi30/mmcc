@@ -76,6 +76,9 @@ static int initExt9 = 3;
 int initExt10[3] = {0, 1, 2};
 char *initExt11[] = {"foo", "bar"};
 struct {char a; int b;} initExt12[2] = {{1, 2}, {3, 4}};
+struct {int a[2];} initExt13[2] = {{{1, 2}}};
+struct {int a[2];} initExt14[2] = {{1, 2}, 3, 4};
+struct {int a[2];} initExt15[2] = {1, 2, 3, 4};
 
 int counter() {
   static int i;
@@ -439,6 +442,21 @@ int main() {
     assert(2, initExt12[0].b, "initExt12[0].b");
     assert(3, initExt12[1].a, "initExt12[1].a");
     assert(4, initExt12[1].b, "initExt12[1].b");
+
+    assert(1, initExt13[0].a[0], "initExt13[0].a[0]");
+    assert(2, initExt13[0].a[1], "initExt13[0].a[1]");
+    assert(0, initExt13[1].a[0], "initExt13[1].a[0]");
+    assert(0, initExt13[1].a[1], "initExt13[1].a[1]");
+
+    assert(1, initExt14[0].a[0], "initExt14[0].a[0]");
+    assert(2, initExt14[0].a[1], "initExt14[0].a[1]");
+    assert(3, initExt14[1].a[0], "initExt14[1].a[0]");
+    assert(4, initExt14[1].a[1], "initExt14[1].a[1]");
+
+    assert(1, initExt15[0].a[0], "initExt15[0].a[0]");
+    assert(2, initExt15[0].a[1], "initExt15[0].a[1]");
+    assert(3, initExt15[1].a[0], "initExt15[1].a[0]");
+    assert(4, initExt15[1].a[1], "initExt15[1].a[1]");
 
     assert(2, counter(), "counter()");
     assert(4, counter(), "counter()");
