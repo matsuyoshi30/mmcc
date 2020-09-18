@@ -301,7 +301,7 @@ Program *program();
 Function *function(Type *type, char *funcname, bool is_extern);
 Var *funcparams();
 Node *stmt();
-Node *typedefs();
+void *typedefs();
 Node *declaration();
 bool is_typename();
 Type *basetype();
@@ -815,8 +815,7 @@ Node *stmt() {
     }
 
     if (peek("typedef")) {
-        node = typedefs();
-        return node;
+        typedefs();
     }
 
     if (is_typename()) {
@@ -832,7 +831,7 @@ Node *stmt() {
 }
 
 // typedefs = "typedef" basetype declarator ( "," declarator ) ";"
-Node *typedefs() {
+void *typedefs() {
     expect("typedef");
 
     Type *base = basetype();
@@ -847,12 +846,6 @@ Node *typedefs() {
 
         num++;
     }
-
-    Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_BLOCK;
-    node->tok = token;
-
-    return node;
 }
 
 // local variable initializer
