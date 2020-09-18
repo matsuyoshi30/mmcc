@@ -393,6 +393,25 @@ void skip_excess_elements() {
 }
 
 Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
+    if (type->kind == TY_ARR && type->ptr_to->kind == TY_CHAR && token->kind == TK_STR) {
+        Token *tok = consume_str();
+
+        if (type->is_incomplete) {
+            type->size = tok->strlen;
+            type->size_array = tok->strlen;
+            type->is_incomplete = false;
+        }
+
+        int len = tok->strlen;
+        if (len > type->size_array)
+            len = type->size_array;
+
+        for (int i=0; i<len; i++)
+            cur = new_init_gval(cur, 1, tok->str[i]);
+
+        return cur;
+    }
+
     // array
     if (type->kind == TY_ARR) {
         bool open = consume("{");
