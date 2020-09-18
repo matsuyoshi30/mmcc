@@ -392,6 +392,12 @@ void skip_excess_elements() {
     skip_excess_elements_helper();
 }
 
+bool is_excess_array_size(Type *type, int cnt) {
+    if (type->is_incomplete)
+        return false;
+    return cnt >= type->size;
+}
+
 Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
     if (type->kind == TY_ARR && type->ptr_to->kind == TY_CHAR && token->kind == TK_STR) {
         Token *tok = consume_str();
@@ -421,20 +427,20 @@ Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
             do {
                 cur = gvar_initializer_helper(cur, type->ptr_to);
                 elem_cnt++;
-            } while (!peek_end() && consume(","));
+            } while (!is_excess_array_size(type, elem_cnt) && !peek_end() && consume(","));
         }
 
         if (open && !(consume("}") || (consume(",") && consume("}"))))
             skip_excess_elements();
-
-        // padding extra array elements with zero value
-        cur = new_init_zero(cur, type->ptr_to->size * (type->size_array - elem_cnt));
 
         if (type->is_incomplete) {
             type->size = type->ptr_to->size * elem_cnt;
             type->size_array = elem_cnt;
             type->is_incomplete = false;
         }
+
+        // padding extra array elements with zero value
+        cur = new_init_zero(cur, type->ptr_to->size * (type->size_array - elem_cnt));
 
         return cur;
     }
