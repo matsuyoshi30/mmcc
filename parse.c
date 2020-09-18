@@ -1044,11 +1044,10 @@ Node *declaration() {
         Var *var = new_lvar(type, type->name);
         var->offset = locals->offset + type->size;
 
-        if (consume("=")) {
+        if (consume("="))
             cur->next = lvar_initializer(var, tok);
-        } else {
-            cur->next = new_node_var(var, tok);
-        }
+        else
+            cur->next = new_node_null_expr(tok);
 
         num++;
         cur = cur->next;
