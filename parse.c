@@ -328,7 +328,6 @@ Node *struct_ref();
 Member *get_struct_member();
 Node *primary();
 Node *funcargs();
-Node *read_array();
 
 // global variable initializer
 
@@ -1351,15 +1350,22 @@ Node *expr() {
     return node;
 }
 
-// x += y => tmp = &x, *tmp = *tmp + y
-Node *compound_assign(Node *node, Nodekind kind, Token *tok) {
-    check_type(node);
-    Var *tmp = new_lvar(pointer_to(node->type), "");
+// x op= y => tmp = &x, *tmp = *tmp op y
+Node *compound_assign(Node *node) {
+    check_type(node->lhs);
+    check_type(node->rhs);
 
-    Node *e1 = new_node(ND_AS, new_node_var(tmp, tok), new_node_addr(node, tok), tok);
+    Var *tmp = new_lvar(pointer_to(node->lhs->type), "");
+    Token *tok = node->tok;
+
+    Node *e1 = new_node(ND_AS, new_node_var(tmp, tok), new_node_addr(node->lhs, tok), tok);
     Node *e2 = new_node(ND_AS,
                         new_node_deref(new_node_var(tmp, tok), tok),
-                        new_node(kind, new_node_deref(new_node_var(tmp, tok), tok), assign(), tok), tok);
+                        new_node(node->kind,
+                                 new_node_deref(new_node_var(tmp, tok), tok),
+                                 node->rhs,
+                                 tok),
+                        tok);
 
     return new_node(ND_COMMA, e1, e2, tok);
 }
@@ -1370,17 +1376,17 @@ Node *assign() {
 
     Token *tok;
     if (tok = consume("="))
-        node = new_node(ND_AS, node, assign(), tok);
+        return new_node(ND_AS, node, assign(), tok);
     if (tok = consume("+="))
-        node = compound_assign(node, ND_ADD, tok);
+        return compound_assign(new_add(node, assign(), tok));
     if (tok = consume("-="))
-        node = compound_assign(node, ND_SUB, tok);
+        return compound_assign(new_sub(node, assign(), tok));
     if (tok = consume("*="))
-        node = compound_assign(node, ND_MUL, tok);
+        return compound_assign(new_node(ND_MUL, node, assign(), tok));
     if (tok = consume("/="))
-        node = compound_assign(node, ND_DIV, tok);
+        return compound_assign(new_node(ND_DIV, node, assign(), tok));
     if (tok = consume("%="))
-        node = compound_assign(node, ND_MOD, tok);
+        return compound_assign(new_node(ND_MOD, node, assign(), tok));
 
     return node;
 }
@@ -1543,14 +1549,10 @@ Node *unary() {
     if (tok = consume("!"))
         return new_node_not(cast(), tok);
 
-    if (tok = consume("++")) {
-        Node *node = unary();
-        return new_node(ND_COMMA, new_node(ND_AS, node, new_add(node, new_node_num(1, tok), tok), tok), node, tok);
-    }
-    if (tok = consume("--")) {
-        Node *node = unary();
-        return new_node(ND_COMMA, new_node(ND_AS, node, new_add(node, new_node_num(-1, tok), tok), tok), node, tok);
-    }
+    if (tok = consume("++"))
+        return compound_assign(new_add(unary(), new_node_num(1, tok), tok));
+    if (tok = consume("--"))
+        return compound_assign(new_sub(unary(), new_node_num(1, tok), tok));
 
     if (consume("sizeof")) {
         Token *tok = token;
