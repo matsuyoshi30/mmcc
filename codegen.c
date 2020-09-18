@@ -493,10 +493,11 @@ void emit_text() {
 
         int stackSize = 0;
         for (Var *var=func->locals; var; var=var->next) {
+            stackSize = align(stackSize, var->type->align);
             stackSize += var->type->size;
             var->offset = stackSize;
         }
-        stackSize = align(stackSize, 16);
+        stackSize = align(stackSize, 8);
 
         // prologue
         printf("  push rbp\n");
