@@ -860,7 +860,7 @@ Node *new_designator(Var *var, Designator *desg, Node *rhs) {
 Node *lvar_init_zero(Node *cur, Var *var, Type *type, Designator *desg) {
   if (type->kind == TY_ARR) {
     for (int i = 0; i < type->size_array; i++) {
-      Designator desg2 = {desg, i++};
+      Designator desg2 = {desg, i};
       cur = lvar_init_zero(cur, var, type->ptr_to, &desg2);
     }
     return cur;
