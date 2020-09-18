@@ -1757,6 +1757,7 @@ Node *primary() {
     Token *tok;
     if (tok = consume("(")) {
         if (consume("{")) {
+            enter_scope();
             Node *node = calloc(1, sizeof(Node));
             node->kind = ND_STMT_EXPR;
             node->tok = tok;
@@ -1768,6 +1769,7 @@ Node *primary() {
                 cur = cur->next;
             }
             expect(")");
+            leave_scope();
 
             if (cur->kind != ND_EXPR_STMT)
                 error_tok(tok, "statement expression returning void is not supported");
