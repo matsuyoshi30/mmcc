@@ -1729,7 +1729,7 @@ Node *primary() {
         } else {
             Var *var;
             if (var = find_var(tok)) {
-                if (var->type->kind == TY_ENUM)
+                if (var->enum_val)
                     return new_node_num(var->enum_val, tok);
                 return new_node_var(var, tok);
             }

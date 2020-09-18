@@ -42,6 +42,12 @@ int f();
 typedef int GInt;
 typedef struct { int a; int b; } GStruct;
 
+typedef enum {
+    ZERO,
+    ONE,
+    TWO,
+} GEnum;
+
 long testFunc5(long a, long b) {
     return a + b;
 }
@@ -261,6 +267,9 @@ int main() {
     assert(7, ({ enum { zero, one, two, five=5, six, seven }; seven; }), "{ enum { zero, one, two, five=5, six, seven }; seven; }");
     assert(4, ({ enum { zero, one, two } x; sizeof(x); }), "({ enum { zero, one, two } x; sizeof(x); })");
     assert(4, ({ enum t { zero, one, two }; enum t x; sizeof(x); }), "({ enum t { zero, one, two }; enum t x; sizeof(x); })");
+
+    assert(0, ({ GEnum ge = ZERO; ge; }), "{ GEnum ge = ZERO; ge; }");
+    assert(1, ({ GEnum ge; ge = ONE; ge; }), "{ GEnum ge; ge = ONE; ge; }");
 
     assert(0, !1, "!1");
     assert(0, !2, "!2");
