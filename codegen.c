@@ -59,9 +59,6 @@ void typecast(Type *type) {
     if (type->kind == TY_BOOL) {
         printf("  cmp rax, 0\n");
         printf("  setne al\n");
-        printf("  movzx rax, al\n");
-        printf("  push rax\n");
-        return;
     }
 
     if (type->size == 1)
