@@ -1703,6 +1703,7 @@ Node *primary() {
 
             if (cur->kind != ND_EXPR_STMT)
                 error_tok(tok, "statement expression returning void is not supported");
+            memcpy(cur, cur->lhs, sizeof(Node));
             return node;
         } else {
             Node *node = expr();

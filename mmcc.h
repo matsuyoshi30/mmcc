@@ -114,6 +114,7 @@ struct Var {
     Type *type;   // variable type
     Var *next;    // next variable
     char *name;   // variable name
+    bool is_enum;
     bool is_local;
     bool is_static;
 
