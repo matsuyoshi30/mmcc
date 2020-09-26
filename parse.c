@@ -1655,13 +1655,14 @@ Node *struct_ref(Node *node) {
     if (node->type->kind != TY_STRUCT)
         error_tok(node->tok, "not struct");
 
+    Token *tok = consume_ident();
+    Member *mem = get_struct_member(node->type, strndup(tok->str, tok->len));
+
     Node *n = calloc(1, sizeof(Node));
     n->kind = ND_MEMBER;
-    n->tok = node->tok;
+    n->tok = tok;
     n->lhs = node;
-
-    Token *tok = consume_ident();
-    n->member = get_struct_member(node->type, strndup(tok->str, tok->len));
+    n->member = mem;
 
     return n;
 }
