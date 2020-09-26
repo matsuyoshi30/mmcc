@@ -1721,6 +1721,7 @@ Node *primary() {
                     error_tok(tok, "not a function");
                 node->type = var->type->return_type;
             } else {
+                // implicit declaration of a function
                 node->type = int_type;
             }
             return node;
