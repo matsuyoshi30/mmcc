@@ -70,6 +70,19 @@ void check_type(Node *node) {
     case ND_AS:
         node->type = node->lhs->type;
         return;
+    case ND_EQ:
+    case ND_NE:
+    case ND_MT:
+    case ND_LT:
+    case ND_OM:
+    case ND_OL:
+        node->type = int_type;
+        return;
+    case ND_NOT:
+    case ND_LOGOR:
+    case ND_LOGAND:
+        node->type = int_type;
+        return;
     case ND_LV:
         node->type = node->var->type;
         return;
@@ -91,6 +104,9 @@ void check_type(Node *node) {
         node->type = block->type;
         return;
     }
+    case ND_EXPR_STMT:
+        node->type = node->lhs->type;
+        return;
     case ND_COMMA:
         node->type = node->rhs->type;
         return;
@@ -98,7 +114,7 @@ void check_type(Node *node) {
         node->type = node->member->type;
         return;
     case ND_NUM:
-        node->type = int_type;
+        node->type = (node->val == (int)node->val) ? int_type : long_type;
         return;
     }
 }
