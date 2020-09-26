@@ -221,16 +221,19 @@ void gen_expr(Node *node) {
 
         printf("  push rdi\n");
         return;
-    case ND_STMT_EXPR:
-        for (Node *block=node->blocks; block; block=block->next)
+    case ND_STMT_EXPR: {
+        Node *block;
+        for (block=node->blocks; block->next; block=block->next)
             gen_stmt(block);
-        printf("  push rax\n");
+        // printf("  push rax\n");
+        gen_expr(block);
         return;
+    }
     case ND_NULL_EXPR:
         return;
     case ND_COMMA:
         gen_expr(node->lhs);
-        printf("  pop rax\n");
+        printf("  add rsp, 8\n");
         gen_expr(node->rhs);
         return;
     }
@@ -424,14 +427,9 @@ void gen_stmt(Node *node) {
         printf(".L.%s:\n", node->labelname);
         gen_stmt(node->lhs);
         return;
-    case ND_COMMA:
-        gen_expr(node->lhs);
-        printf("  pop rax\n");
-        gen_expr(node->rhs);
-        return;
     case ND_EXPR_STMT:
         gen_expr(node->lhs);
-        printf("  pop rax\n");
+        printf("  add rsp, 8\n");
         return;
     }
 }
