@@ -364,8 +364,7 @@ Initializer *new_init_glabel(Initializer *cur, char *labelname) {
 }
 
 Initializer *new_init_string(Token *tok) {
-    Initializer head;
-    head.next = NULL;
+    Initializer head = {};
     Initializer *cur = &head;
 
     char *s = strndup(tok->str, tok->len);
@@ -490,7 +489,7 @@ Initializer *gvar_initializer_helper(Initializer *cur, Type *type) {
 }
 
 Initializer *gvar_initializer(Type *type) {
-    Initializer head;
+    Initializer head = {};
     gvar_initializer_helper(&head, type);
 
     return head.next;
@@ -498,8 +497,7 @@ Initializer *gvar_initializer(Type *type) {
 
 // program = ( basetype ident ( function | gvar ";" ) )* | typedefs
 Program *program() {
-    Function head;
-    head.next = NULL;
+    Function head = {};
     Function *cur = &head;
 
     globals = calloc(1, sizeof(Var));
@@ -569,8 +567,7 @@ Function *function(Type *type, char *funcname, bool is_extern) {
 
     expect("{");
 
-    Node head;
-    head.next = NULL;
+    Node head = {};
     Node *cur = &head;
     while (!consume("}")) {
         cur->next = stmt();
@@ -587,8 +584,7 @@ Function *function(Type *type, char *funcname, bool is_extern) {
 
 // funcparams = ( basetype declarator ( "," basetype declarator )* )? ")"
 Var *funcparams() {
-    Var head;
-    head.next = NULL;
+    Var head = {};
     Var *cur = &head;
 
     int num = 0;
@@ -643,8 +639,7 @@ Node *stmt() {
     }
 
     if (tok = consume("{")) {
-        Node head;
-        head.next = NULL;
+        Node head = {};
         Node *cur = &head;
 
         enter_scope();
@@ -997,7 +992,7 @@ Node *lvar_initializer_helper(Node *cur, Var *var, Type *type, Designator *desg)
 }
 
 Node *lvar_initializer(Var *var, Token *tok) {
-    Node head;
+    Node head = {};
     lvar_initializer_helper(&head, var, var->type, NULL);
 
     Node *node = calloc(1, sizeof(Node));
@@ -1009,8 +1004,7 @@ Node *lvar_initializer(Var *var, Token *tok) {
 
 // declaration = basetype declarator ( "=" ( lvar_initializer ) )? ( "," declarator ( "=" ( lvar_initializer ) )? )* ";"
 Node *declaration() {
-    Node head;
-    head.next = NULL;
+    Node head = {};
     Node *cur = &head;
 
     Token *tok = token;
@@ -1240,8 +1234,7 @@ Type *struct_decl() {
 
 // struct_member = ( basetype declarator ( "," declarator )* ";" )* "}"
 Member *struct_members() {
-    Member head;
-    head.next = NULL;
+    Member head = {};
     Member *cur = &head;
 
     while (!consume("}")) {
