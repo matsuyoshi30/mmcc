@@ -286,6 +286,8 @@ long eval(Node *node) {
     return eval(node->cond) ? eval(node->then) : eval(node->els);
   case ND_COMMA:
     return eval(node->rhs);
+  case ND_LV:
+    return node->var->enum_val;
   case ND_NUM:
     return node->val;
   }
