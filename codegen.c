@@ -467,6 +467,7 @@ void emit_data(Program *prog) {
         if (!global->initializer)
             continue;
 
+        printf(".align %d\n", global->type->align);
         printf("%s:\n", global->name);
 
         for (Initializer *init=global->initializer; init; init=init->next) {
