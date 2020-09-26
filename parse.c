@@ -1301,6 +1301,7 @@ Type *enum_decl() {
             val = const_expr();
         }
 
+        var->is_enum = true;
         var->enum_val = val++;
 
         tok = token;
@@ -1732,7 +1733,7 @@ Node *primary() {
         } else {
             Var *var;
             if (var = find_var(tok)) {
-                if (var->enum_val)
+                if (var->is_enum)
                     return new_node_num(var->enum_val, tok);
                 return new_node_var(var, tok);
             }
