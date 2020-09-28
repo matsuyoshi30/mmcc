@@ -28,7 +28,7 @@ cc() {
 mmcc main.c
 cc tokenize.c
 mmcc type.c
-cc parse.c
+mmcc parse.c
 mmcc codegen.c
 
 gcc -static -o mmcc-gen2 $TMP/*.o

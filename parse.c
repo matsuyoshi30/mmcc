@@ -1103,7 +1103,8 @@ Type *declarator(Type *basetype) {
         Type *placeholder = calloc(1, sizeof(Type));
         Type *nestedType = declarator(placeholder);
         expect(")");
-        *placeholder = *type_suffix(type);
+        // *placeholder = *type_suffix(type); => TODO: stage2 でエラー
+        memcpy(placeholder, type_suffix(type), sizeof(Type));
         return nestedType;
     }
     Token *tok = consume_ident();
@@ -1124,7 +1125,8 @@ Type *abstract_declarator(Type *basetype) {
         Type *placeholder = calloc(1, sizeof(Type));
         Type *nestedType = abstract_declarator(placeholder);
         expect(")");
-        *placeholder = *type_suffix(type);
+        // *placeholder = *type_suffix(type); => TODO: stage2 でエラー
+        memcpy(placeholder, type_suffix(type), sizeof(Type));
         return nestedType;
     }
 
