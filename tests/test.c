@@ -92,6 +92,9 @@ int counter() {
   return i++ + j++;
 }
 
+int add_all1(int x, ...);
+int add_all3(int z, int b, int c, ...);
+
 int main() {
     assert(0, 0, "0");
     assert(42, 42, "42");
@@ -481,6 +484,12 @@ int main() {
 
     assert(7, ({ int i=0; int j=0; do { j++; } while (i++ < 6); j; }), "{ int i=0; int j=0; do { j++; } while (i++ < 6); j; }");
     assert(4, ({ int i=0; int j=0; int k=0; do { if (++j > 3) break; continue; k++; } while (1); j; }), "{ int i=0; int j=0; int k=0; do { if (j++ > 3) break; continue; k++; } while (1); j; }");
+
+    assert(6, add_all1(1,2,3,0), "add_all1(1,2,3,0)");
+    assert(5, add_all1(1,2,3,-1,0), "add_all1(1,2,3,-1,0)");
+
+    assert(6, add_all3(1,2,3,0), "add_all3(1,2,3,0)");
+    assert(5, add_all3(1,2,3,-1,0), "add_all3(1,2,3,-1,0)");
 
     printf("OK\n");
     return 0;

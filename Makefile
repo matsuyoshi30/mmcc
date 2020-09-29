@@ -15,16 +15,17 @@ mmcc: $(OBJS)
 mmcc-stage2: mmcc $(SRCS) $(OBJS) self.sh
 	./self.sh
 
-test: mmcc
+extern.o: tests/tests-extern.c
+	gcc -xc -c -o extern.o tests/tests-extern.c
+
+test: mmcc extern.o
 	./mmcc tests/test.c > tmp.s
-	echo 'int ext1; int *ext2; int static_func() { return 5; }' | gcc -xc -c -o tmp2.o -
-	gcc -static -o tmp tmp.s tmp2.o
+	gcc -static -o tmp tmp.s extern.o
 	./tmp
 
-test-stage2: mmcc-stage2
+test-stage2: mmcc-stage2 extern.o
 	./mmcc-gen2 tests/test.c > tmp.s
-	echo 'int ext1; int *ext2; int static_func() { return 5; }' | gcc -xc -c -o tmp2.o -
-	gcc -static -o tmp tmp.s tmp2.o
+	gcc -static -o tmp tmp.s extern.o
 	./tmp
 
 debug: mmcc

@@ -179,7 +179,7 @@ bool is_alnum(char c) {
 char *is_reserved(char *c) {
     char *kw[] = {"return", "if", "else", "while", "for", "do",
                   "switch", "case", "default", "break", "continue", "goto",
-                  "sizeof", "typedef", "static", "extern"};
+                  "sizeof", "typedef", "static", "extern", "..."};
     for (int i=0; i<sizeof(kw)/sizeof(*kw); i++) {
         int len = strlen(kw[i]);
         if (strncmp(c, kw[i], len) == 0 && !is_alnum(c[len]))

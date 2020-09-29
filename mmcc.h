@@ -252,6 +252,7 @@ struct Function {
     char *name;
     Var *params;
     Var *locals;
+    bool has_varargs;
     Node *body;
 };
 

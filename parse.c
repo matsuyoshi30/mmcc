@@ -301,7 +301,7 @@ static Function *code;
 
 Program *program();
 Function *function(Type *type, char *funcname, bool is_extern);
-Var *funcparams();
+void funcparams(Function *func);
 Node *stmt();
 void *typedefs();
 Node *declaration();
@@ -552,7 +552,7 @@ Function *function(Type *type, char *funcname, bool is_extern) {
     enter_scope();
     expect("(");
 
-    locals = funcparams();
+    funcparams(func);
     if (consume(";")) {
         leave_scope();
         return NULL;
@@ -582,8 +582,8 @@ Function *function(Type *type, char *funcname, bool is_extern) {
     return func;
 }
 
-// funcparams = ( basetype declarator ( "," basetype declarator )* )? ")"
-Var *funcparams() {
+// funcparams = ( basetype declarator ( "," basetype declarator | "..." )* )? ")"
+void funcparams(Function *func) {
     Var head = {};
     Var *cur = &head;
 
@@ -591,6 +591,12 @@ Var *funcparams() {
     while (!consume(")")) {
         if (num > 0)
             expect(",");
+
+        if (consume("...")) {
+            func->has_varargs = true;
+            expect(")");
+            break;
+        }
 
         Type *base = basetype();
         Type *type = declarator(base);
@@ -605,7 +611,9 @@ Var *funcparams() {
         cur = cur->next;
     }
 
-    return head.next;
+    locals = head.next;
+    func->params = head.next;
+    return;
 }
 
 // stmt = "return" expr? ";"
