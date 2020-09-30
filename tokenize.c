@@ -393,7 +393,7 @@ void tokenize(char *filename, char *input) {
 
             cur = new_token(TK_STR, cur, p, buf, end-p);
             cur->strlen = len;
-            p += end-p+1;
+            p = end + 1;
             continue;
         }
 
