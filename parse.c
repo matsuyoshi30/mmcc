@@ -124,9 +124,11 @@ Node *new_sub(Node *lhs, Node *rhs, Token *tok) {
     // num - num
     if (is_integer(lhs->type) && is_integer(rhs->type))
         return new_node(ND_SUB, lhs, rhs, tok);
-    // ptr - ptr
-    if (lhs->type->ptr_to && rhs->type->ptr_to)
-        error_tok(token, "invalid operands");
+    // ptr - ptr, which returns how many elements are between the two
+    if (lhs->type->ptr_to && rhs->type->ptr_to) {
+        Node *node = new_node(ND_SUB, lhs, rhs, tok);
+        return new_node(ND_DIV, node, new_node_num(lhs->type->ptr_to->size, tok), tok);
+    }
     // ptr - num
     rhs = new_node(ND_MUL, rhs, new_node_num(lhs->type->ptr_to->size, tok), tok);
 
