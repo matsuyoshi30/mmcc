@@ -943,26 +943,28 @@ Node *lvar_initializer_helper(Node *cur, Var *var, Type *type, Designator *desg)
         expect("{");
         int i = 0;
 
-        do {
-            Designator desg2 = {desg, i++};
-            cur = lvar_initializer_helper(cur, var, type->ptr_to, &desg2);
-        } while (!peek_end() && consume(","));
+        if (!peek("}")) {
+            do {
+                Designator desg2 = {desg, i++};
+                cur = lvar_initializer_helper(cur, var, type->ptr_to, &desg2);
+            } while (!peek_end() && consume(","));
+        }
 
         if (consume(","))
             expect("}");
         else
             expect("}");
 
-        // padding extra array elements with zero value
-        if (i < type->size_array) {
-            Designator desg2 = {desg, i++};
-            cur = lvar_init_zero(cur, var, type->ptr_to, &desg2);
-        }
-
         if (type->is_incomplete) {
             type->size = type->ptr_to->size * i;
             type->size_array = i;
             type->is_incomplete = false;
+        }
+
+        // padding extra array elements with zero value
+        for (; i<type->size_array; i++) {
+            Designator desg2 = {desg, i};
+            cur = lvar_init_zero(cur, var, type->ptr_to, &desg2);
         }
 
         return cur;

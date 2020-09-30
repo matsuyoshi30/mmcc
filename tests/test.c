@@ -376,6 +376,7 @@ int main() {
     assert(3, ({ int x[]={1,2,3,4}; x[2]; }), "{ int x[]={1,2,3,4}; x[2]; }");
     assert(4, ({ int x[]={1,2,3,4}; x[3]; }), "{ int x[]={1,2,3,4}; x[3]; }");
     assert(4, ({ char x[]="foo"; sizeof(x); }), "{ char x[]=\"foo\"; sizeof(x); }");
+    assert(24, ({ char *x[]={"foo", "bar", "hoge"}; sizeof(x); }), "{ char *x[]={\"foo\", \"bar\", \"hoge\"}; sizeof(x); }");
 
     assert(2, 0?1:2, "0?1:2");
     assert(1, 1?1:2, "1?1:2");
