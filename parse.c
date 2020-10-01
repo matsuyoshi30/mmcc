@@ -614,7 +614,6 @@ void funcparams(Function *func) {
     }
 
     locals = head.next;
-    func->params = head.next;
     return;
 }
 
