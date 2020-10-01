@@ -1734,6 +1734,8 @@ Node *primary() {
                 if (var->type->kind != TY_FUNC)
                     error_tok(tok, "not a function");
                 node->type = var->type->return_type;
+            } else if (!strcmp(node->funcname, "__builtin_va_start")) {
+                node->type = void_type;
             } else {
                 // implicit declaration of a function
                 node->type = int_type;

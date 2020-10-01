@@ -165,6 +165,18 @@ void gen_expr(Node *node) {
         return;
     }
     case ND_FUNC: {
+        if (!strcmp(node->funcname, "__builtin_va_start")) {
+            printf("  # __builtin_va_start call start");
+            printf("  pop rax\n");
+            printf("  mov edi, dword ptr [rbp-8]\n");
+            printf("  mov dword ptr [rax], 0\n");     // gp_offset
+            printf("  mov dword ptr [rax+4], 0\n");   // fp_offset
+            printf("  mov qword ptr [rax+8], rdi\n"); // *overflow_arg_area
+            printf("  mov qword ptr [rax+16], 0\n");  // *reg_save_area
+            printf("  # __builtin_va_start call end");
+            return;
+        }
+
         int num_of_args = 0;
         for (Node *arg=node->args; arg; arg=arg->next) {
             gen_expr(arg);
@@ -487,7 +499,7 @@ void emit_text(Program *prog) {
             printf(".global %s\n", func->name);
         printf("%s:\n", funcname);
 
-        int stackSize = 0;
+        int stackSize = func->has_varargs ? 56 : 0;
         for (Var *var=func->locals; var; var=var->next) {
             stackSize = align(stackSize, var->type->align);
             stackSize += var->type->size;
@@ -499,6 +511,21 @@ void emit_text(Program *prog) {
         printf("  push rbp\n");
         printf("  mov rbp, rsp\n");
         printf("  sub rsp, %d\n", stackSize);
+
+        // Save arg registers if function is variadic
+        if (func->has_varargs) {
+            int n = 0;
+            for (Var *param=func->params; param; param=param->next)
+                n++;
+
+            printf("  mov dword ptr [rbp-8], %d\n", n*8);
+            printf("  mov [rbp-16], r9\n");
+            printf("  mov [rbp-24], r8\n");
+            printf("  mov [rbp-32], rcx\n");
+            printf("  mov [rbp-40], rdx\n");
+            printf("  mov [rbp-48], rsi\n");
+            printf("  mov [rbp-56], rdi\n");
+        }
 
         int i = 0;
         for (Var *param=func->params; param; param=param->next) {
