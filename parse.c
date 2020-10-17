@@ -602,6 +602,8 @@ void funcparams(Function *func) {
 
         Type *base = basetype();
         Type *type = declarator(base);
+        if (type->kind == TY_ARR)
+            type = pointer_to(type);
         char *name = type->name;
 
         Var *var = new_params(type, name);

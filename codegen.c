@@ -165,18 +165,6 @@ void gen_expr(Node *node) {
         return;
     }
     case ND_FUNC: {
-        if (!strcmp(node->funcname, "__builtin_va_start")) {
-            printf("  # __builtin_va_start call start");
-            printf("  pop rax\n");
-            printf("  mov edi, dword ptr [rbp-8]\n");
-            printf("  mov dword ptr [rax], 0\n");     // gp_offset
-            printf("  mov dword ptr [rax+4], 0\n");   // fp_offset
-            printf("  mov qword ptr [rax+8], rdi\n"); // *overflow_arg_area
-            printf("  mov qword ptr [rax+16], 0\n");  // *reg_save_area
-            printf("  # __builtin_va_start call end");
-            return;
-        }
-
         int num_of_args = 0;
         for (Node *arg=node->args; arg; arg=arg->next) {
             gen_expr(arg);
@@ -185,6 +173,20 @@ void gen_expr(Node *node) {
 
         for (int i=num_of_args-1; i>=0; i--)
             printf("  pop %s\n", argRegs8[i]);
+
+        if (!strcmp(node->funcname, "__builtin_va_start")) {
+            // va_elem
+            // ap->gp_offset = gp * 8
+            printf("  mov dword ptr [rdi], %d\n", num_of_args * 8);
+            // ap->fp_offset = 48 + fp * 8
+            printf("  mov dword ptr [rdi + 4], %d\n", 48);
+            // ap->reg_save_area = rbp - 56 (address for first arg(rdi))
+            printf("  mov [rdi+16], rbp\n");
+            printf("  sub qword ptr [rdi+16], 56\n");
+            // this is dummy
+            printf("  push rax\n");
+            return;
+        }
 
         int seq = labels++;
         printf("  mov rax, rsp\n");
