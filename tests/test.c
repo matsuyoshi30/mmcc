@@ -276,6 +276,7 @@ int main() {
 
     assert(97, 'a', "'a'");
     assert(10, '\n', "'\\n'");
+    assert(0, '\0', "'\\0'");
     assert(4, ({ sizeof('a'); }), "{ sizeof('a'); }");
 
     assert(0, ({ enum { zero, one, two }; zero; }), "{ enum { zero, one, two }; zero; }");

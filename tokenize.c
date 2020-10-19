@@ -242,6 +242,8 @@ char is_escape(char *c) {
         return '\t';
     case 'v':
         return '\v';
+    case '0':
+        return '\0';
     default:
         return *c;
     }
