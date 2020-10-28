@@ -10,7 +10,8 @@ int main(int argc, char **argv) {
 
     printf(".file 1 \"%s\"\n", argv[1]);
 
-    tokenize(filename, user_input); // tokenize input
+    token = tokenize(filename, user_input); // tokenize input
+    token = preprocess(token);
     Program *prog = program();  // parse tokens into AST
     codegen(prog);  // emit code from AST
 

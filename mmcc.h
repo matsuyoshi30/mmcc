@@ -44,7 +44,11 @@ void expect(char *op);
 long expect_number();
 bool at_eof();
 
-void tokenize(char *filename, char *input);
+Token *tokenize(char *filename, char *input);
+
+// Preprocess
+
+Token *preprocess(Token *tok);
 
 // type
 

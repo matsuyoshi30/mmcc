@@ -276,7 +276,7 @@ void add_line_numbers(Token *tok) {
     } while (*p++);
 }
 
-void tokenize(char *filename, char *input) {
+Token *tokenize(char *filename, char *input) {
     cur_filename = filename;
     cur_input = input;
 
@@ -419,5 +419,5 @@ void tokenize(char *filename, char *input) {
 
     new_token(TK_EOF, cur, p, p, 1);
     add_line_numbers(head.next);
-    token = head.next;
+    return head.next;
 }

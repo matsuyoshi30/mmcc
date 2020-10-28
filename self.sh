@@ -46,6 +46,7 @@ cc() {
 
 mmcc main.c
 mmcc tokenize.c
+mmcc preprocess.c
 mmcc type.c
 mmcc parse.c
 mmcc codegen.c
